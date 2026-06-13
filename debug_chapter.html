@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>选关界面调试</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&amp;family=IM+Fell+English&amp;family=Cinzel:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#F0EBE0;--surface:#FCF7E8;--parchment:#D4B896;--parchment-dark:#C9A87A;--border:#A07848;--accent:#8B6020;--accent-red:#8B1A1A;--gold:#7A4F00;--text:#3A2008;--text-dim:#6B4A20}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:16px}
+body::after{content:" ";position:fixed;top:0;left:0;bottom:0;right:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");z-index:9999;background-size:200px 200px;pointer-events:none;opacity:0.06;mix-blend-mode:multiply}
+.container{width:100%;max-width:480px;background:linear-gradient(180deg,#EAE2D2 0%,#E5DCC8 100%);padding:16px 16px 20px;position:relative;border-radius:18px 4px 22px 6px / 6px 20px 4px 24px;transform:rotate(-0.2deg);box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),inset 0 -1px 3px rgba(0,0,0,0.04),4px 6px 12px rgba(0,0,0,0.15),0 0 0 10px rgba(179,163,132,0.15)}
+.chapter-header{text-align:center;margin-bottom:12px}
+.chapter-title{font-size:11px;color:var(--text-dim);font-family:sans-serif;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2px}
+.chapter-name{font-size:20px;font-weight:500;color:var(--text)}
+.chapter-status{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px}
+.cstat{background:var(--parchment-dark);border:1px solid var(--border);border-radius:5px;padding:5px 4px;text-align:center}
+.cstat .lbl{font-size:10px;color:var(--text-dim);font-family:sans-serif}
+.cstat .val{font-size:14px;font-weight:500;color:var(--text);font-family:'Cinzel',serif}
+.cstat .val.red{color:var(--accent-red)}
+.cstat .val.gold{color:var(--gold)}
+.map-area{position:relative;width:100%;padding:4px 0 8px}
+.map-svg{width:100%;display:block}
+.map-svg .path-line{stroke:#c4a878;stroke-width:2;stroke-dasharray:4,3;fill:none}
+.map-svg .path-line.done{stroke:var(--accent);stroke-dasharray:none;stroke-width:2.5}
+.map-svg .node-circle{transition:all 0.15s;cursor:pointer}
+.map-svg .done .node-circle{fill:var(--accent);stroke:#6B4010}
+.map-svg .current .node-circle{fill:#d4a030;stroke:#a07010;stroke-width:3}
+.map-svg .available .node-circle{fill:#e8d5a0;stroke:var(--border);stroke-width:2.5}
+.map-svg .locked .node-circle{fill:#c4b090;stroke:#a09070;stroke-width:1.5}
+.node-text{font-size:14px;text-anchor:middle;dominant-baseline:central;pointer-events:none;font-family:sans-serif}
+.node-label{font-size:10px;font-family:sans-serif;text-anchor:middle;fill:var(--text-dim);pointer-events:none}
+.node-tooltip{background:#3A2008;color:#F5E8D0;font-size:11px;font-family:sans-serif;padding:5px 8px;border-radius:4px;text-align:center;margin-top:8px}
+.enter-btn{width:100%;background:var(--accent);border:2px solid #6B4010;border-radius:6px;padding:10px;color:#F5E8D0;font-size:14px;font-family:serif;cursor:pointer;margin-top:8px;display:none;align-items:center;justify-content:center;gap:6px}
+.enter-btn.show{display:flex}
+.buffs-title{font-size:10px;color:var(--text-dim);font-family:sans-serif;letter-spacing:0.05em;margin:12px 0 6px;text-transform:uppercase}
+.buff-chip{background:var(--parchment);border:1px solid var(--border);border-radius:5px;padding:5px 10px;font-size:12px;color:var(--text);font-family:sans-serif;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.buff-chip .tag{background:var(--accent);color:#F5E8D0;font-size:10px;padding:2px 6px;border-radius:3px;white-space:nowrap}
+.buff-chip .tag.build{background:#5A7A8E}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.btn{flex:1;padding:8px;border:2px solid var(--border);border-radius:6px;background:var(--parchment-dark);cursor:pointer;font-size:12px;color:var(--text);text-align:center;font-family:sans-serif}
+.btn.primary{background:var(--accent);color:#F5E8D0;border-color:#6B4010}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="chapter-header"><div class="chapter-title">第一章</div><div class="chapter-name">石像鬼之巢</div></div>
+<div class="chapter-status">
+  <div class="cstat"><div class="lbl">❤️ HP</div><div class="val red" id="csHp">8/10</div></div>
+  <div class="cstat"><div class="lbl">🛡️ 护甲</div><div class="val" id="csArmor">1</div></div>
+  <div class="cstat"><div class="lbl">⚔️ 攻击力</div><div class="val gold" id="csTokens">2</div></div>
+  <div class="cstat"><div class="lbl">⭐ 强化</div><div class="val" id="csBuffs">2</div></div>
+</div>
+<div class="map-area" id="mapArea"></div>
+<div class="node-tooltip" id="nodeTooltip"></div>
+<button class="enter-btn show" id="enterBtn">进入节点</button>
+<div class="buffs-title">已获得强化</div>
+<div id="buffsList">
+  <div class="buff-chip"><span class="tag">战斗</span>对子精通 — 对子倍率 ×1.5 → ×2</div>
+  <div class="buff-chip"><span class="tag build">构建</span>扩容 — 主动令牌上限 +1</div>
+</div>
+<div class="btn-row"><button class="btn">返回标题</button><button class="btn primary">进入战斗</button></div>
+</div>
+
+<script>
+const CHAPTER={name:'石像鬼之巢',nodes:[
+  {id:'start',type:'start',x:170,y:310,next:['forkA','forkB']},
+  {id:'forkA',type:'battle',x:100,y:240,next:['elite']},
+  {id:'forkB',type:'battle',x:240,y:240,next:['elite']},
+  {id:'elite',type:'elite',x:170,y:170,next:['camp']},
+  {id:'camp',type:'camp',x:170,y:100,next:['boss']},
+  {id:'boss',type:'boss',x:170,y:40,next:[]},
+]};
+const NODE_TYPES={battle:{icon:'⚔',label:'战斗'},elite:{icon:'!',label:'精英'},camp:{icon:'♨',label:'营地'},boss:{icon:'👹',label:'Boss'},start:{icon:'★',label:'起点'}};
+
+// 模拟：已完成 start 和 forkA，当前在 elite
+const completed=['start','forkA'];const current='elite';
+
+function render(){
+  const available=new Set();const curNode=CHAPTER.nodes.find(n=>n.id===current);
+  if(curNode)curNode.next.forEach(id=>available.add(id));
+  let svg=`<svg class="map-svg" viewBox="0 0 340 350">`;
+  CHAPTER.nodes.forEach(n=>{(n.next||[]).forEach(nid=>{
+    const t=CHAPTER.nodes.find(x=>x.id===nid);if(!t)return;
+    const d=completed.includes(n.id)&&(completed.includes(nid)||nid===current||available.has(nid));
+    svg+=`<line class="path-line${d?' done':''}" x1="${n.x}" y1="${n.y}" x2="${t.x}" y2="${t.y}"/>`;
+  })});
+  CHAPTER.nodes.forEach(n=>{
+    const done=completed.includes(n.id),cur=n.id===current,avail=available.has(n.id)&&!done;
+    const locked=!done&&!cur&&!avail&&n.type!=='start';
+    const cls=done?'done':(cur?'current':(avail?'available':'locked'));
+    const info=NODE_TYPES[n.type]||{icon:'?',label:n.type};
+    const r=n.type==='boss'?24:(n.type==='start'||n.type==='elite'?22:20);
+    const fc=cls==='done'?'#F5E8D0':(cls==='locked'?'#a09070':'#3A2008');
+    svg+=`<g class="node ${cls}" data-node="${n.id}" style="cursor:${cls==='locked'?'default':'pointer'}">`;
+    svg+=`<circle class="node-circle" cx="${n.x}" cy="${n.y}" r="${r}"/>`;
+    svg+=`<text class="node-text" x="${n.x}" y="${n.y+1}" fill="${fc}">${info.icon}</text>`;
+    svg+=`<text class="node-label" x="${n.x}" y="${n.y+r+12}">${info.label}</text></g>`;
+  });
+  svg+=`</svg>`;document.getElementById('mapArea').innerHTML=svg;
+  const tt=document.getElementById('nodeTooltip'),eb=document.getElementById('enterBtn');
+  document.querySelectorAll('#mapArea .node').forEach(el=>{el.addEventListener('click',()=>{
+    const n=CHAPTER.nodes.find(x=>x.id===el.dataset.node);if(!n)return;
+    const info=NODE_TYPES[n.type]||{},cls=el.classList.contains('done')?'done':(el.classList.contains('current')?'current':(el.classList.contains('available')?'available':'locked'));
+    if(cls==='locked')return;
+    tt.textContent=info.label+(cls==='done'?' — 已完成':(cls==='current'?' — 当前位置':' — 可进入'));
+    eb.classList.add('show');eb.dataset.nodeId=n.id;
+  })});
+  eb.addEventListener('click',()=>alert('进入：'+NODE_TYPES[CHAPTER.nodes.find(n=>n.id===eb.dataset.nodeId)?.type]?.label));
+}
+render();
+</script>
+</body></html>
