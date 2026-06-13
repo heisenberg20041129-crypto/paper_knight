@@ -1,0 +1,3488 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Paper Knight - 卡牌战棋游戏</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&amp;family=IM+Fell+English&amp;family=Cinzel:wght@400;500;700:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F0EBE0;
+    --surface: #FCF7E8;
+    --surface-bright: #F0E8D5;
+    --card-bg: #FCF7E8;
+    --parchment: #D4B896;
+    --parchment-dark: #C9A87A;
+    --border: #A07848;
+    --border-light: #B8956A;
+    --accent: #8B6020;
+    --accent-red: #8B1A1A;
+    --gold: #7A4F00;
+    --text: #3A2008;
+    --text-dim: #6B4A20;
+    --ink: #B3A384;
+    --red: #C0392B;
+    --green: #6B8E5A;
+    --blue: #5A7A8E;
+    --yellow: #B8860B;
+    --cell-open: #E8D5B0;
+    --cell-block: #B89060;
+    --radius: 5px;
+    --card-radius: 4px;
+    --cell-w: 46px; --cell-h: 53px; --hex-off: 23px;
+    --grid-cols: 10; --grid-w: 460px;
+    --board-h: 310px; --container-w: 540px;
+    --card-w: 62px; --card-h: 90px; --card-spread: 240;
+  }
+  @media (min-width: 900px) {
+    :root {
+      --cell-w: 60px; --cell-h: 69px; --hex-off: 30px;
+      --grid-w: 600px; --board-h: 420px; --container-w: 740px;
+      --card-w: 82px; --card-h: 118px; --card-spread: 440;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body { height: 100%; overflow: hidden; margin: 0; }
+  body {
+    background: #3A2810;
+    color: var(--text);
+    font-family: 'Noto Serif SC', serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 6px;
+    position: relative;
+  }
+
+  body::after {
+    content: " ";
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 9999;
+    background-size: 200px 200px;
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: multiply;
+  }
+
+  .container {
+    width: 100%;
+    max-width: var(--container-w);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background:
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #F0E8D0 0%, #E8DCC0 100%);
+    background-blend-mode: overlay;
+    padding: 8px 10px 8px;
+    position: relative;
+    border-radius: 2px 16px 3px 12px / 4px 18px 2px 10px;
+    transform: rotate(-0.15deg);
+    box-shadow:
+      inset 0 0 40px rgba(160,120,60,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      3px 5px 0 rgba(80,40,10,0.25),
+      5px 8px 20px rgba(0,0,0,0.3),
+      0 0 0 8px rgba(160,120,60,0.2);
+    border: 2px solid rgba(120,80,30,0.3);
+  }
+  .container::before {
+    content: ''; position: absolute; inset: 4px; border: 1px solid rgba(100,60,20,0.15); border-radius: inherit; pointer-events: none; z-index: 99;
+  }
+
+  .hidden { display: none !important; }
+  .shrink { flex: 0 0 auto; }
+  .grow  { flex: 1 1 0; min-height: 0; overflow: hidden; }
+
+  /* ── 头部 ── */
+  .header {
+    text-align: center;
+    margin-bottom: 4px;
+    padding-bottom: 2px;
+    opacity: 0.6; flex-shrink: 0;
+  }
+  .header h1 {
+    font-family: 'IM Fell English', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    display: inline;
+    border-bottom: 1px dashed rgba(140,123,107,0.25);
+    padding-bottom: 1px;
+  }
+  .header .subtitle { display: none; }
+
+  /* ── 统计条（卡牌阶段） ── */
+  .stat-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 4px; flex-shrink: 0;
+  }
+  .stat-chip {
+    background: linear-gradient(180deg, rgba(220,200,160,0.6) 0%, rgba(180,150,100,0.4) 100%);
+    border: 1px solid rgba(120,80,30,0.3); border-radius: 3px; padding: 4px 3px; text-align: center;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
+  }
+  .stat-chip .lbl { font-size: 9px; color: var(--text-dim); font-family: serif; }
+  .stat-chip .val { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.2; font-family: 'Cinzel', serif; }
+  .stat-chip .val.red { color: var(--accent-red); }
+  .stat-chip .val.gold { color: var(--gold); }
+
+  /* ── 得分横幅 ── */
+  .score-banner {
+    background: linear-gradient(180deg, rgba(220,200,160,0.5) 0%, rgba(180,150,100,0.3) 100%);
+    border: 1px solid rgba(120,80,30,0.25); border-radius: 3px;
+    padding: 6px 10px; margin-bottom: 4px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
+  }
+  .score-banner .score-main { font-size: 32px; font-weight: 500; color: var(--text); line-height: 1; font-family: 'Cinzel', serif; }
+  .score-banner .score-sub { text-align: right; }
+  .score-banner .score-ap { font-size: 18px; font-weight: 500; color: var(--gold); font-family: 'Cinzel', serif; }
+  .score-banner .score-lbl { font-size: 10px; color: var(--text-dim); font-family: sans-serif; display: block; margin-bottom: 2px; }
+
+  /* 预览态 */
+  .score-banner.preview .score-main { color: var(--accent); opacity: 0.7; }
+  .score-banner.preview .score-ap { color: var(--accent) !important; opacity: 0.7; }
+  .score-banner.preview .score-lbl::after { content: '（预计）'; font-size: 0.55rem; color: var(--accent); opacity: 0.5; }
+
+  /* ── 牌型提示 ── */
+  .hand-type-bar {
+    background: linear-gradient(180deg, rgba(200,180,150,0.5) 0%, rgba(160,140,110,0.3) 100%);
+    border: 1px solid rgba(120,80,30,0.2); border-radius: 3px;
+    padding: 3px 8px; margin-bottom: 4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between; font-family: serif;
+    min-height: 24px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+  }
+  .ht-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .ht-mult { font-size: 12px; color: var(--gold); }
+  .ht-token { font-size: 12px; color: #4A7A3A; display: flex; align-items: center; gap: 3px; }
+
+  /* ── 换牌信息 ── */
+  .swap-info { font-size: 10px; color: var(--text-dim); font-family: sans-serif; text-align: center; margin-bottom: 2px; flex-shrink: 0; }
+  .sort-btns { display: flex; gap: 4px; justify-content: center; margin-bottom: 4px; flex-shrink: 0; }
+  .sort-btn { font-size: 10px; padding: 2px 10px; border: 1px solid rgba(120,80,30,0.4); border-radius: 10px; background: linear-gradient(180deg, rgba(220,200,160,0.5) 0%, rgba(180,150,100,0.3) 100%); color: var(--text-dim); cursor: pointer; font-family: serif; }
+  .sort-btn.active { background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); color: #F5E8D0; border-color: #4A2808; }
+  .swap-info span { font-weight: 500; color: var(--text); }
+
+  /* ── 牌型参考表 ── */
+  .ref-table {
+    margin-bottom: 12px; overflow-x: auto; padding: 8px;
+    border-radius: 3px 16px 4px 12px / 5px 10px 3px 14px;
+    box-shadow: 1px 2px 4px rgba(0,0,0,0.06); transform: rotate(-0.3deg);
+  }
+  .ref-table table { width: 100%; border-collapse: collapse; font-size: 0.6rem; color: var(--text-dim); }
+  .ref-table th { color: var(--text); padding: 5px 6px; font-weight: 800; letter-spacing: 0.05em; white-space: nowrap; }
+  .ref-table td { padding: 4px 6px; text-align: center; white-space: nowrap; }
+  .ref-table tbody tr:nth-child(odd) td { background: rgba(0,0,0,0.02); }
+
+  /* ── 手牌区 ── */
+  .cards-area {
+    position: relative; min-height: calc(var(--card-h) + 16px); width: 100%;
+    margin-bottom: 2px; padding: 4px 0 2px;
+  }
+  .card {
+    width: var(--card-w); height: var(--card-h); border-radius: 6px;
+    border: 1.5px solid var(--border); position: absolute; cursor: pointer;
+    transform: translateX(-50%);
+    bottom: 0; transition: bottom 0.15s ease;
+    user-select: none; background: var(--cell-open);
+  }
+  .card.selected { bottom: 18px; border-color: #4A7A3A; border-width: 2px; filter: brightness(0.6) saturate(0.7); animation: float 1.8s ease-in-out infinite; }
+  .card-inner {
+    width: 100%; height: 100%; border-radius: 5px;
+    background: url('img/card.png') center/120% 150% no-repeat, var(--cell-open);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .card-inner::before {
+    content: ''; position: absolute; inset: 0; border-radius: 5px;
+    border: 0.5px solid var(--parchment-dark);
+  }
+  .card-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; border-radius: 5px 0 0 5px; }
+  .card-num { font-size: 28px; font-weight: 500; color: #2A1A08; line-height: 1; margin-top: 4px; font-family: 'Cinzel', serif; }
+  .card-suit { position: absolute; top: 3px; right: 4px; font-size: 10px; color: var(--text-dim); font-family: sans-serif; }
+  .card-suit-bot { position: absolute; bottom: 3px; left: 4px; font-size: 10px; color: var(--text-dim); font-family: sans-serif; transform: rotate(180deg); }
+
+  @keyframes float {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(-4px); }
+  }
+
+  /* ── 卡牌阶段操作按钮 ── */
+  .card-actions {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 4px; flex-shrink: 0;
+  }
+  .act-btn {
+    background: linear-gradient(180deg, #D4B896 0%, #B89060 100%);
+    border: 2px solid #8B6020; border-radius: 3px;
+    padding: 8px 6px; text-align: center; cursor: pointer;
+    font-family: serif; font-size: 11px; box-shadow: 1px 2px 0 rgba(0,0,0,0.2);
+  }
+  .act-btn .aicon { font-size: 16px; color: var(--text); display: block; margin-bottom: 2px; }
+  .act-btn .albl { font-size: 11px; color: var(--text); font-weight: 500; }
+  .act-btn .asub { font-size: 9px; color: var(--text-dim); }
+  .act-btn.primary { background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border-color: #4A2808; box-shadow: 2px 3px 0 #3A2008; }
+  .act-btn.primary .aicon, .act-btn.primary .albl { color: #F5E8D0; }
+  .act-btn.primary .asub { color: #C9A07A; }
+  .act-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ── 历史记录 ── */
+  .history-container {
+    margin-top: 4px; padding: 4px 6px; flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(200,180,150,0.3) 0%, rgba(160,140,110,0.2) 100%);
+    border: 1px solid rgba(120,80,30,0.2); border-radius: 3px;
+    max-height: 60px; overflow-y: auto; font-size: 10px;
+  }
+  .history-title {
+    font-size: 10px; color: var(--text-dim); font-family: sans-serif;
+    margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .history { font-size: 10px; color: var(--text); font-family: sans-serif; line-height: 1.5; }
+  .history .entry {
+    display: flex; justify-content: space-between;
+    padding: 2px 0; color: var(--text-dim);
+  }
+  .history .entry b { color: var(--text); }
+  .history .muted { color: var(--text-dim); }
+
+  /* ── 重置按钮 ── */
+  .btn-reset {
+    width: 100%; margin-top: 4px; height: 28px; font-size: 0.65rem; flex-shrink: 0;
+    background: linear-gradient(180deg, #C9A87A 0%, #A07848 100%);
+    border: 2px solid #6B4010; border-radius: 3px; cursor: pointer; color: #F5E8D0;
+    font-family: serif; display: flex; align-items: center;
+    justify-content: center; gap: 4px; text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+    box-shadow: 1px 2px 0 #3A2008;
+  }
+  .btn-reset:active { transform: translateY(1px); box-shadow: 0 0 0 #3A2008; }
+
+  /* ── 得分动画 ── */
+  @keyframes scorePop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+  @keyframes countUp {
+    0%   { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .score-banner.bump { animation: scorePop 0.35s ease-out; }
+  .score-banner .score-main.counting { animation: countUp 0.25s ease-out; }
+
+  /* ── 棋盘 ── */
+  .board-container {
+    background: linear-gradient(180deg, rgba(220,200,160,0.4) 0%, rgba(180,150,100,0.3) 100%);
+    border: 2px solid rgba(120,80,30,0.25); border-radius: 3px;
+    padding: 6px; position: relative;
+    display: flex; flex-direction: column; flex: 1; min-height: 0;
+    box-shadow: inset 0 0 20px rgba(160,120,60,0.1);
+  }
+  .board-container::before {
+    content: ''; position: absolute; inset: 3px;
+    border: 1px solid rgba(100,60,20,0.12); border-radius: 2px;
+    pointer-events: none; z-index: 1;
+  }
+  .board-stat-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    margin-bottom: 4px; position: relative; z-index: 2; flex-shrink: 0;
+  }
+
+  .board-tokens {
+    display: flex; gap: 4px; margin-bottom: 4px; align-items: center;
+    position: relative; z-index: 2; flex-shrink: 0; min-height: 22px;
+  }
+  .board-tokens .token-badge {
+    background: linear-gradient(180deg, rgba(220,200,160,0.7) 0%, rgba(180,150,100,0.5) 100%);
+    border: 1px solid rgba(120,80,30,0.3); border-radius: 3px;
+    padding: 3px 7px; font-size: 11px;
+    color: var(--text); font-family: serif;
+    display: flex; align-items: center; gap: 4px;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
+  }
+
+  .board-log {
+    background: linear-gradient(180deg, rgba(200,180,150,0.4) 0%, rgba(160,140,110,0.3) 100%);
+    border: 1px solid rgba(120,80,30,0.2); border-radius: 3px;
+    padding: 4px 6px; margin-top: 4px;
+    font-size: 10px; color: var(--text); font-family: serif;
+    line-height: 1.4; max-height: 40px; overflow-y: auto;
+    position: relative; z-index: 2; flex-shrink: 0;
+  }
+
+  .board-wrap {
+    background: linear-gradient(180deg, rgba(180,150,110,0.5) 0%, rgba(150,120,80,0.4) 100%);
+    border: 2px solid rgba(100,60,20,0.3); border-radius: 2px;
+    padding: 6px; margin-bottom: 4px;
+    position: relative; z-index: 2;
+    perspective: 1000px; overflow: hidden; flex: 1; min-height: 100px;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+  }
+  .board-scroll {
+    transform: rotateX(70deg);
+    transform-style: preserve-3d;
+  }
+  .board-grid {
+    display: grid; grid-template-columns: repeat(var(--grid-cols), var(--cell-w)); gap: 0;
+    background: transparent; width: var(--grid-w); margin: 0 auto;
+    justify-content: center; padding: 12px 0;
+  }
+  .board-cell {
+    width: var(--cell-w); height: var(--cell-h);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; font-size: 10px;
+    background: var(--cell-open);
+    margin-top: calc(var(--cell-h) * -0.245); margin-bottom: calc(var(--cell-h) * -0.245);
+    transform-style: preserve-3d;
+    border: none; border-radius: 0;
+  }
+  .board-cell.hex-offset { margin-left: var(--hex-off); margin-right: calc(var(--hex-off) * -1); }
+  .board-cell.wall { background: var(--cell-block); }
+  /* 厚度（box-shadow 模拟） */
+  .board-cell:not(.wall) { box-shadow: 0 4px 0 0 rgba(0,0,0,0.18); }
+  .board-cell.wall { box-shadow: 0 8px 0 0 rgba(0,0,0,0.30); }
+
+  .board-cell.hero { background: transparent; box-shadow: none; filter: none; }
+  .board-cell.enemy { background: transparent; box-shadow: none; filter: none; }
+  .board-cell.swamp { background: #D0D8E8; filter: drop-shadow(0 0 0 1px #6090B0); }
+  .board-cell.fire { background: #FDE8C0; filter: drop-shadow(0 0 0 1px #E8A020); }
+  .board-cell.ink { background: #C0D8E8; filter: drop-shadow(0 0 0 1px #6090B0); }
+
+  .sprite-layer .hp-bar {
+    width: 28px; height: 4px; background: rgba(0,0,0,0.20);
+    border-radius: 2px; overflow: hidden; margin-bottom: 2px; flex-shrink: 0;
+  }
+  .sprite-layer .hp-bar-fill {
+    height: 100%; background: var(--accent-red);
+    border-radius: 2px; transition: width 0.2s;
+  }
+
+  .board-toast {
+    position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+    background: rgba(58,32,8,0.88); color: #F5E8D0;
+    font-size: 12px; font-family: sans-serif; padding: 6px 14px;
+    border-radius: 6px; pointer-events: none; z-index: 10;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .board-toast.show { opacity: 1; }
+  .board-cell.in-range {
+    background: #FFE8A0;
+    filter: drop-shadow(0 0 6px rgba(200,150,40,0.7));
+    cursor: pointer;
+    animation: rangePulse 1.2s ease-in-out infinite;
+    transition: background 0.1s, filter 0.1s;
+  }
+  .board-cell.in-range:hover {
+    background: #FFD040;
+    filter: drop-shadow(0 0 14px rgba(220,160,20,1));
+  }
+  .board-cell.in-range.wall { background: var(--cell-block); filter: none; cursor: default; animation: none; }
+  .board-cell.in-range.wall:hover { background: var(--cell-block); filter: none; }
+  @keyframes rangePulse { 0%,100% { filter: drop-shadow(0 0 6px rgba(200,150,40,0.7)); } 50% { filter: drop-shadow(0 0 10px rgba(220,180,60,0.9)); } }
+  .board-cell.wall { cursor: default; }
+  .board-cell img { transition: transform 0.1s linear; }
+  .board-cell.wall { cursor: default; }
+
+  .board-cell img { transition: transform 0.1s linear; }
+  .sprite-layer {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    pointer-events: none; z-index: 5;
+  }
+  .char-layer {
+    z-index: 15; /* 人物层始终在顶层 */
+  }
+  .sprite-layer .sprite {
+    position: absolute;
+    transform-origin: bottom center;
+    transform-style: preserve-3d;
+    display: flex; align-items: center; justify-content: center;
+    /* transform 统一在 JS makeSprite 中设置，不在 CSS 里重复定义 */
+  }
+  .sprite-layer .sprite img {
+    width: 100%; height: 100%; object-fit: contain;
+    transition: transform 0.1s linear;
+  }
+
+  /* 小地图 */
+  .minimap {
+    position: absolute; top: 6px; right: 6px;
+    width: 80px; height: 80px;
+    background: rgba(30,16,4,0.75); border: 1px solid var(--border);
+    border-radius: 4px; z-index: 20;
+    display: grid; grid-template-columns: repeat(var(--grid-cols), 1fr);
+    gap: 1px 0; padding: 3px; row-gap: 0;
+    pointer-events: none;
+  }
+  .minimap-dot {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background: rgba(255,255,255,0.10);
+    margin-top: -1px; margin-bottom: -1px;
+  }
+  .minimap-dot.mm-offset { transform: translateX(50%); }
+  .minimap-dot.wall { background: rgba(0,0,0,0.30); }
+  .minimap-dot.hero { background: #4A7A3A; }
+  .minimap-dot.enemy { background: #D07050; }
+  .minimap-dot.swamp { background: rgba(100,140,180,0.5); }
+  .minimap-dot.fire { background: rgba(230,160,40,0.5); }
+  .minimap-dot.ink { background: rgba(80,70,100,0.5); }
+
+  /* Damage flash */
+  @keyframes damageFlash {
+    0%   { background-color: rgba(255,80,80,0.65); }
+    100% { background-color: transparent; }
+  }
+  .board-cell.damage-flash { animation: damageFlash 0.2s ease-out; }
+
+  /* Exit zone */
+  .board-cell.exit-zone {
+    background: #C8F0D0;
+    filter: drop-shadow(0 0 8px rgba(60,160,80,0.8));
+    cursor: pointer;
+    animation: exitPulse 0.8s ease-in-out infinite;
+  }
+  .board-cell.exit-zone.wall { background: var(--cell-block); filter: none; cursor: default; animation: none; }
+  @keyframes exitPulse {
+    0%,100% { filter: drop-shadow(0 0 8px rgba(60,160,80,0.8)); }
+    50% { filter: drop-shadow(0 0 14px rgba(80,220,100,1)); }
+  }
+  @keyframes bombPop {
+    0% { transform: scale(0.3); opacity: 0; }
+    40% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.9; }
+  }
+
+  /* Objective bar */
+  .objective-bar {
+    display: flex; gap: 8px; margin-bottom: 8px;
+    font-size: 11px; font-family: sans-serif; color: var(--text-dim);
+    align-items: center; justify-content: center;
+    position: relative; z-index: 2;
+  }
+  .objective-bar .obj {
+    background: var(--parchment-dark); border: 1px solid var(--border);
+    border-radius: 5px; padding: 4px 10px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .objective-bar .obj.done { background: #C8D8C0; color: #3A5A20; text-decoration: line-through; }
+
+
+  /* 令牌背包 */
+  .token-bag { background: linear-gradient(180deg, rgba(200,180,150,0.5) 0%, rgba(160,140,110,0.3) 100%); border: 1px solid rgba(120,80,30,0.25); border-radius: 3px; padding: 6px 8px; margin: 4px 0; box-shadow: inset 0 1px 3px rgba(255,255,255,0.2); }
+  .token-bag-title { font-size: 9px; color: var(--text-dim); font-family: serif; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .token-bag-slots { display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; align-items: center; }
+  .token-chip { background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); color: #F5E8D0; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-family: serif; display: flex; align-items: center; gap: 4px; cursor: pointer; border: 1px solid #4A2808; box-shadow: 1px 1px 0 rgba(0,0,0,0.3); }
+  .token-chip.full { background: linear-gradient(180deg, #8B4A3A 0%, #6B2010 100%); }
+
+  /* 牌堆弹窗 */
+  .deck-overlay { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+  .deck-overlay.hidden { display: none; }
+  .deck-overlay-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+  .deck-box { position: relative; background: linear-gradient(180deg, #F5E8D0 0%, #E5D8B0 100%); border: 3px solid rgba(120,80,30,0.4); border-radius: 4px; padding: 14px; max-width: 320px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 4px 6px 0 rgba(0,0,0,0.2), 0 0 30px rgba(0,0,0,0.5); }
+  .deck-box::before { content: ''; position: absolute; inset: 5px; border: 1px solid rgba(100,60,20,0.15); border-radius: 2px; pointer-events: none; }
+  .deck-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 10px; }
+  .deck-sort { float: right; font-size: 10px; cursor: pointer; margin-left: 8px; font-weight: 400; color: var(--text-dim); }
+  .deck-grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 12px; }
+  .deck-card { width: 36px; height: 52px; border-radius: 3px; border: 2px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: var(--text); background: var(--cell-open); font-family: 'Cinzel', serif; }
+  .deck-card .dc-suit { font-size: 7px; color: var(--text-dim); font-family: sans-serif; }
+  .deck-close-btn { width: 100%; padding: 6px; border: 2px solid #6B4010; border-radius: 3px; background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); cursor: pointer; font-size: 12px; color: #F5E8D0; font-family: serif; box-shadow: 1px 2px 0 #3A2008; }
+
+  .section-lbl {
+    font-size: 10px; color: var(--text-dim); font-family: sans-serif;
+    letter-spacing: 0.05em; margin-bottom: 2px; text-transform: uppercase;
+    position: relative; z-index: 2; flex-shrink: 0;
+  }
+  .board-divider {
+    border: none; border-top: 1px solid var(--border-light);
+    margin: 3px 0; position: relative; z-index: 2; flex-shrink: 0;
+  }
+
+  .dpad {
+    display: grid; grid-template-columns: repeat(3, 52px); gap: 4px;
+    width: 164px; margin: 0 auto;
+  }
+  .dpad-btn {
+    background: var(--parchment-dark); border: 1.5px solid var(--border);
+    border-radius: 5px; padding: 8px; text-align: center; cursor: pointer;
+    color: var(--text); font-size: 16px; transition: background 0.1s;
+    font-family: inherit;
+  }
+  .dpad-btn:active:not(:disabled) { background: var(--border-light); }
+  .dpad-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .dpad-empty { background: transparent; border: none; }
+
+  .action-btns {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    margin-bottom: 4px; position: relative; z-index: 2; flex-shrink: 0;
+  }
+  .board-act-btn {
+    background: linear-gradient(180deg, #D4B896 0%, #B89060 100%);
+    border: 2px solid #8B6020; border-radius: 3px;
+    padding: 6px 3px; text-align: center; cursor: pointer;
+    font-family: serif; color: var(--text); font-size: 9px;
+    box-shadow: 1px 2px 0 rgba(0,0,0,0.15);
+  }
+  .board-act-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
+  .board-act-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .board-act-btn .aicon { font-size: 16px; display: block; margin-bottom: 1px; }
+  .board-act-btn .albl { font-size: 9px; color: var(--text); }
+  .board-act-btn .acost { font-size: 9px; color: #8B4A00; font-weight: 500; }
+
+  .confirm-btn {
+    width: 100%;
+    background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%);
+    border: 3px solid #4A2808; border-radius: 3px; padding: 8px;
+    color: #F5E8D0; font-size: 14px; font-family: 'Cinzel', serif;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px; position: relative; z-index: 2; flex-shrink: 0;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.5); letter-spacing: 0.05em;
+    box-shadow: 2px 3px 0 #3A2008;
+  }
+  .confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  @media (max-width: 400px) {
+    .container { padding: 12px; }
+    .card { width: 56px; height: 82px; }
+    .score-banner .score-main { font-size: 26px; }
+  }
+
+  /* ── 主界面：骑士图鉴封面 ── */
+  .menu-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    height: 100%; text-align: center; gap: 12px; padding-bottom: 24px;
+    background: url('img/background.png') center/100% 100% no-repeat;
+    border-radius: inherit; position: relative;
+  }
+  .menu-screen::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    background: radial-gradient(ellipse at 50% 80%, rgba(20,10,4,0.5) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .menu-title {
+    font-family: 'IM Fell English', serif; font-size: 2.2rem; color: #F5E8D0;
+    letter-spacing: 0.08em; text-shadow: 2px 2px 0 rgba(30,15,5,0.7);
+    position: relative; z-index: 1;
+  }
+  .menu-sub { font-size: 11px; color: #D4B896; font-family: serif; letter-spacing: 0.1em; position: relative; z-index: 1; }
+  .menu-btn {
+    padding: 10px 36px;
+    border: 3px solid #6B4010; border-radius: 4px;
+    background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%);
+    color: #F5E8D0; font-size: 15px; font-family: 'Cinzel', serif; cursor: pointer;
+    letter-spacing: 0.06em; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+    box-shadow: 2px 3px 0 #3A2008, 0 0 12px rgba(0,0,0,0.3);
+    position: relative; z-index: 1;
+  }
+  .menu-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #3A2008; }
+
+  /* ── 职业选择：塔罗牌式 ── */
+  .class-screen { display: flex; flex-direction: column; height: 100%; text-align: center; }
+  .class-title {
+    font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 12px;
+    font-family: 'Cinzel', serif; letter-spacing: 0.1em;
+  }
+  .class-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; align-content: center; padding: 0 4px; }
+  .class-card {
+    border: 3px solid var(--parchment-dark); border-radius: 6px;
+    padding: 12px 6px 10px; cursor: pointer;
+    background: linear-gradient(180deg, #F5E8D0 0%, #D4B896 100%);
+    box-shadow: 3px 4px 0 rgba(0,0,0,0.15), inset 0 0 0 3px rgba(255,255,255,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .class-card::before {
+    content: ''; position: absolute; inset: 6px; border: 1px solid rgba(0,0,0,0.15); border-radius: 3px; pointer-events: none;
+  }
+  .class-card:hover { transform: translateY(-4px); box-shadow: 4px 8px 0 rgba(0,0,0,0.2); }
+  .class-card .cicon { width: 56px; height: 56px; object-fit: contain; display: block; margin: 0 auto 4px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.2)); }
+  .class-card .cname { font-size: 13px; font-weight: 500; color: var(--text); font-family: 'Cinzel', serif; }
+  .class-card .cdesc { font-size: 9px; color: var(--text-dim); font-family: serif; margin-top: 2px; }
+  .class-card.locked {
+    opacity: 0.5; cursor: not-allowed; filter: grayscale(0.6);
+    background: linear-gradient(180deg, #C9B896 0%, #A89070 100%);
+  }
+  .class-card.locked:hover { transform: none; box-shadow: 3px 4px 0 rgba(0,0,0,0.15); }
+
+  /* ── 章节选择 ── */
+  .chapter-select-screen { display: flex; flex-direction: column; height: 100%; text-align: center; justify-content: center; gap: 20px; }
+  .chapter-select-screen .cstitle { font-size: 18px; font-weight: 500; color: var(--text); font-family: 'Cinzel', serif; }
+  .chapter-card { border: 3px solid var(--parchment-dark); border-radius: 6px; padding: 20px 14px; cursor: pointer; background: linear-gradient(180deg, #F5E8D0 0%, #D4B896 100%); box-shadow: 3px 4px 0 rgba(0,0,0,0.15); transition: transform 0.2s; }
+  .chapter-card:hover { transform: translateY(-4px); }
+  .chapter-card .cname { font-size: 16px; font-weight: 500; color: var(--text); font-family: 'Cinzel', serif; }
+  .chapter-card .cdetail { font-size: 10px; color: var(--text-dim); font-family: serif; margin-top: 4px; }
+
+  /* 教程告示牌 */
+  .tutorial-sign { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 200; background: linear-gradient(180deg, #3A2810 0%, #2A1805 100%); border: 3px solid #C9A87A; border-radius: 4px; padding: 20px 24px; text-align: center; color: #F5E8D0; font-family: 'Cinzel',serif; box-shadow: 0 8px 30px rgba(0,0,0,0.6); pointer-events: auto; cursor: pointer; opacity: 0; transition: opacity 0.3s; }
+  .tutorial-sign.show { opacity: 1; }
+  .tutorial-sign .ts-title { font-size: 14px; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .tutorial-sign .ts-desc { font-size: 11px; font-family: serif; color: #C9A87A; margin-bottom: 4px; }
+  .tutorial-sign .ts-hint { font-size: 9px; color: #8B7355; }
+
+  /* ── 章节地图 ── */
+  .chapter-screen { padding: 4px 0; display: flex; flex-direction: column; height: 100%; }
+  .chapter-header { text-align: center; margin-bottom: 6px; flex-shrink: 0; }
+  .chapter-title { font-size: 11px; color: var(--text-dim); font-family: sans-serif; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+  .chapter-name { font-size: 20px; font-weight: 500; color: var(--text); }
+
+  .chapter-status { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px; flex-shrink: 0; }
+  .cstat { background: var(--parchment-dark); border: 1px solid var(--border); border-radius: 5px; padding: 5px 4px; text-align: center; }
+  .cstat .lbl { font-size: 10px; color: var(--text-dim); font-family: sans-serif; }
+  .cstat .val { font-size: 14px; font-weight: 500; color: var(--text); font-family: 'Cinzel', serif; }
+  .cstat .val.red { color: var(--accent-red); }
+  .cstat .val.gold { color: var(--gold); }
+
+  .map-area { position: relative; width: 100%; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .map-svg { width: 100%; height: 100%; display: block; }
+  .map-svg .path-line { stroke: #c4a878; stroke-width: 2; stroke-dasharray: 4,3; fill: none; }
+  .map-svg .path-line.done { stroke: var(--accent); stroke-dasharray: none; stroke-width: 2.5; }
+  .map-svg .node-circle { transition: all 0.15s; cursor: pointer; }
+  .map-svg .done .node-circle { fill: var(--accent); stroke: #6B4010; }
+  .map-svg .current .node-circle { fill: #d4a030; stroke: #a07010; stroke-width: 3; }
+  .map-svg .available .node-circle { fill: #e8d5a0; stroke: var(--border); stroke-width: 2.5; }
+  .map-svg .locked .node-circle { fill: #c4b090; stroke: #a09070; stroke-width: 1.5; }
+  .node-text { font-size: 14px; text-anchor: middle; dominant-baseline: central; pointer-events: none; font-family: sans-serif; }
+  .node-label { font-size: 10px; font-family: sans-serif; text-anchor: middle; fill: var(--text-dim); pointer-events: none; }
+
+  .node-tooltip { background: #3A2008; color: #F5E8D0; font-size: 11px; font-family: sans-serif; padding: 5px 8px; border-radius: 4px; text-align: center; margin-top: 8px; }
+  .enter-btn { width: 100%; background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border: 2px solid #4A2808; border-radius: 3px; padding: 10px; color: #F5E8D0; font-size: 14px; font-family: 'Cinzel', serif; cursor: pointer; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 2px 3px 0 #3A2008; text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
+  .enter-btn:active { transform: translateY(2px); box-shadow: none; }
+
+  .chapter-buffs { margin-top: 12px; }
+  .chapter-buffs .buffs-title { font-size: 10px; color: var(--text-dim); font-family: sans-serif; letter-spacing: 0.05em; margin-bottom: 6px; text-transform: uppercase; }
+  .buff-chip { background: var(--parchment); border: 1px solid var(--border); border-radius: 5px; padding: 5px 10px; font-size: 12px; color: var(--text); font-family: sans-serif; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .buff-chip .tag { background: var(--accent); color: #F5E8D0; font-size: 10px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
+  .buff-chip .tag.build { background: #5A7A8E; }
+
+  /* ── 奖励界面 ── */
+  .reward-screen { padding: 8px 0; }
+  .reward-header { text-align: center; font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 16px; }
+  .reward-cards { display: flex; flex-direction: column; gap: 8px; }
+  .reward-card { background: var(--parchment); border: 2px solid var(--border); border-radius: 8px; padding: 14px 12px; cursor: pointer; transition: all 0.15s; }
+  .reward-card:hover { border-color: var(--accent); background: #F5E8D0; transform: translateY(-2px); box-shadow: 3px 5px 0 rgba(0,0,0,0.15); }
+  .reward-card .rtag { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 2px; color: #F5E8D0; font-family: serif; margin-bottom: 4px; }
+  .reward-card .rtag.combat { background: #8B1A1A; }
+  .reward-card .rtag.build { background: #5A7A8E; }
+  .reward-card .rtag.random { background: #7A4F00; }
+  .reward-card .rname { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .reward-card .rdesc { font-size: 11px; color: var(--text-dim); font-family: sans-serif; }
+
+  /* ── 营地界面 ── */
+  .camp-screen { text-align: center; padding: 20px 0; }
+  .camp-header { font-size: 28px; margin-bottom: 4px; }
+  .camp-desc { font-size: 12px; color: var(--text-dim); font-family: sans-serif; margin-bottom: 20px; }
+  .camp-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .camp-btn { background: linear-gradient(180deg, #D4B896 0%, #B89060 100%); border: 2px solid #8B6020; border-radius: 3px; padding: 14px 8px; cursor: pointer; font-size: 14px; color: var(--text); font-family: serif; box-shadow: 2px 3px 0 rgba(0,0,0,0.2); }
+  .camp-btn:hover { border-color: #6B4010; background: linear-gradient(180deg, #E0C8A0 0%, #C9A070 100%); }
+  .camp-btn small { display: block; font-size: 10px; color: var(--text-dim); font-family: serif; margin-top: 3px; }
+
+  /* ── 胜利界面 ── */
+  .victory-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; border-radius: inherit; z-index: 100; }
+  .victory-dialog { background: linear-gradient(180deg, #F5E8D0 0%, #E5D8B0 100%); border: 4px solid rgba(120,80,30,0.5); padding: 30px 24px; text-align: center; border-radius: 3px; max-width: 300px; box-shadow: 4px 6px 0 rgba(0,0,0,0.2), 0 0 40px rgba(0,0,0,0.5); }
+  .victory-dialog::before { content: ''; position: absolute; inset: 6px; border: 1px solid rgba(100,60,20,0.15); border-radius: 2px; pointer-events: none; }
+  .victory-icon { font-size: 48px; margin-bottom: 8px; }
+  .victory-title { font-size: 22px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .victory-desc { font-size: 12px; color: var(--text-dim); font-family: sans-serif; margin-bottom: 20px; }
+  .victory-btn { background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border: 2px solid #4A2808; border-radius: 3px; padding: 10px 30px; color: #F5E8D0; font-size: 14px; font-family: 'Cinzel', serif; cursor: pointer; box-shadow: 2px 3px 0 #3A2008; text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
+  .victory-btn:active { transform: translateY(2px); box-shadow: none; }
+
+  /* BGM 音量按钮 */
+  .vol-btn {
+    position: fixed; top: 12px; right: 12px; z-index: 99999;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(58,32,8,0.65); border: 1px solid rgba(180,150,110,0.5);
+    color: #E5D8B0; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s; font-family: sans-serif;
+  }
+  .vol-btn:hover { background: rgba(58,32,8,0.85); }
+
+  /* 返回按钮 */
+  .back-btn {
+    position: fixed; top: 12px; left: 12px; z-index: 99999;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(58,32,8,0.65); border: 1px solid rgba(180,150,110,0.5);
+    color: #E5D8B0; font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s; font-family: sans-serif;
+  }
+  .back-btn:hover { background: rgba(58,32,8,0.85); }
+  .back-btn.hidden { display: none; }
+</style>
+</head>
+<body>
+<button class="back-btn" id="backBtn" title="返回">◂</button>
+<button class="vol-btn" id="volBtn" title="BGM音量">🔊</button>
+<div class="container">
+
+<!-- 头部 -->
+<div class="header">
+  <h1>Paper Knight</h1>
+  <div class="subtitle">回合 <span id="roundNum">1</span></div>
+</div>
+
+<!-- 统计条（卡牌阶段可见） -->
+<div class="stat-bar" id="cardStatBar">
+  <div class="stat-chip"><div class="lbl">❤️ HP</div><div class="val red" id="statHp">10/10</div></div>
+  <div class="stat-chip"><div class="lbl">🛡️ 护甲</div><div class="val" id="statArmor">0</div></div>
+  <div class="stat-chip"><div class="lbl">⚔️ 攻击力</div><div class="val gold" id="statSwap">2</div></div>
+  <div class="stat-chip"><div class="lbl">⚡ AP</div><div class="val gold" id="statToken">0</div></div>
+</div>
+
+<!-- 得分横幅 -->
+<div class="score-banner" id="scoreBanner">
+  <div class="score-left">
+    <div class="score-lbl">当前得分</div>
+    <div class="score-main" id="totalScore">0</div>
+  </div>
+  <div class="score-sub">
+    <span class="score-lbl">转化行动力</span>
+    <div class="score-ap" id="scoreAP">+0 AP</div>
+  </div>
+</div>
+
+<!-- 牌型提示 -->
+<div class="hand-type-bar" id="handHint">
+  <span class="ht-name" id="htName">请选择手牌</span>
+  <span class="ht-mult" id="htMult"></span>
+  <span class="ht-token" id="htToken"></span>
+</div>
+
+<!-- 牌型参考弹窗 -->
+<div class="deck-overlay hidden" id="refOverlay">
+  <div class="deck-overlay-bg"></div>
+  <div class="deck-box">
+    <div class="deck-title">牌型参考</div>
+    <div class="ref-table">
+      <table>
+      <thead><tr><th>牌型</th><th>条件</th><th>倍率</th><th>令牌</th><th>效果</th></tr></thead>
+      <tbody>
+      <tr><td>单张</td><td>1 张</td><td>×1</td><td>—</td><td>—</td></tr>
+      <tr><td>对子</td><td>2 张同数字</td><td>×1.5</td><td>💨无影</td><td>本回合敌人反击无效</td></tr>
+      <tr><td>同花</td><td>5 张同色</td><td>×1.5</td><td>🔮洞察</td><td>下回合换牌次数增加1次</td></tr>
+      <tr><td>两对</td><td>两对不同对子</td><td>×2</td><td>💚治疗</td><td>回复 1 HP</td></tr>
+              <tr><td>三条</td><td>3 张同数字</td><td>×2.5</td><td>💢狂暴</td><td>下次攻击伤害翻倍</td></tr>
+              <tr><td>葫芦</td><td>三条+一对</td><td>×3</td><td>🛡️坚韧</td><td>+2HP +2护甲</td></tr>
+      <tr><td>顺子</td><td>5 张连续</td><td>×2.5</td><td>❄️冻结</td><td>下回合敌人无法行动</td></tr>
+              <tr><td>四张</td><td>4 张同数字</td><td>×3</td><td>💖重生</td><td>回复全部生命</td></tr>
+              <tr><td>同花顺</td><td>5 张同色连续</td><td>×5</td><td>⚜️传奇</td><td>全场敌人受到3点伤害+跳过敌回</td></tr>
+      </tbody>
+      </table>
+    </div>
+    <button class="deck-close-btn" id="btnCloseRef">关闭</button>
+  </div>
+</div>
+
+<!-- 教程告示牌 -->
+<div class="tutorial-sign hidden" id="tutorialSign" onclick="this.classList.remove('show');this.classList.add('hidden')">
+  <div class="ts-title" id="tsTitle"></div>
+  <div class="ts-desc" id="tsDesc"></div>
+  <div class="ts-hint">（点击关闭）</div>
+</div>
+
+<!-- 手牌区 -->
+<div class="cards-area" id="cardsArea"></div>
+
+<!-- 换牌信息 -->
+<div class="swap-info">已换牌 <span id="swapCount">0</span> / <span id="swapMax">2</span> 次</div>
+<div class="sort-btns"><button class="sort-btn active" id="sortNum">按大小</button><button class="sort-btn" id="sortColor">按花色</button></div>
+
+<!-- 卡牌阶段按钮 -->
+<div class="card-actions" id="cardButtons">
+  <button class="act-btn" disabled id="btnDiscard">
+    <span class="aicon">🔄</span>
+    <div class="albl">换牌</div>
+    <div class="asub" id="swapSub"></div>
+  </button>
+  <button class="act-btn primary" disabled id="btnPlay">
+    <span class="aicon">⚡</span>
+    <div class="albl">出牌</div>
+    <div class="asub" id="playSub">选择牌型</div>
+  </button>
+</div>
+
+<!-- 令牌背包 -->
+<div class="token-bag" id="tokenBag">
+  <div class="token-bag-title">🎒 令牌背包</div>
+  <div class="token-bag-slots" id="tokenSlots"></div>
+</div>
+
+<!-- 牌堆弹窗 -->
+<div class="deck-overlay hidden" id="deckOverlay">
+  <div class="deck-overlay-bg"></div>
+  <div class="deck-box">
+    <div class="deck-title">牌堆（剩余 <span id="deckCount">0</span> 张）
+      <span class="deck-sort" onclick="window._deckSort('color')">按花色</span>
+      <span class="deck-sort" onclick="window._deckSort('num')">按数字</span>
+    </div>
+    <div class="deck-grid" id="deckGrid"></div>
+    <button class="deck-close-btn" id="btnCloseDeck">关闭</button>
+  </div>
+</div>
+
+<!-- 棋盘阶段 -->
+<div class="board-container hidden" id="boardContainer">
+  <div class="board-stat-bar">
+    <div class="stat-chip"><div class="lbl">❤️ HP</div><div class="val red" id="heroHP">10/10</div></div>
+    <div class="stat-chip"><div class="lbl">🛡️ 护甲</div><div class="val" id="heroArmor">0</div></div>
+    <div class="stat-chip"><div class="lbl">🎖️ 令牌</div><div class="val gold" id="tokenCount">0/3</div></div>
+    <div class="stat-chip"><div class="lbl">⚡ 行动力</div><div class="val gold" id="boardAP">0</div></div>
+  </div>
+  <div class="objective-bar hidden" id="objectiveBar"><div class="obj" id="objBoss">👹 击杀Boss</div><div class="obj" id="objExit">🚩 抵达右端出口</div></div>
+  <div class="board-log" id="boardLog"></div>
+  <div class="board-wrap"><div class="board-scroll" id="boardScroll"><div class="board-grid" id="boardGrid"></div><div class="sprite-layer" id="terrainLayer"></div><div class="sprite-layer char-layer" id="charLayer"></div></div><div class="minimap" id="minimap"></div></div>
+  <div class="board-tokens hidden" id="boardTokens"></div>
+  <hr class="board-divider">
+  <div class="section-lbl" style="text-align:center">点击周围格子移动或攻击</div>
+  <div class="action-btns">
+    <button class="board-act-btn" id="btnAttack" disabled><span class="aicon">⚔️</span><span class="albl">攻击</span><span class="acost">2 AP · 2伤</span></button>
+    <button class="board-act-btn hidden" id="btnHeal"><span class="aicon">💚</span><span class="albl">治疗</span><span class="acost">血量回复1点</span></button>
+    <button class="board-act-btn hidden" id="btnShadow"><span class="aicon">💨</span><span class="albl">无影</span><span class="acost">敌人反击无效</span></button>
+    <button class="board-act-btn hidden" id="btnRage"><span class="aicon">💢</span><span class="albl">狂暴</span><span class="acost">攻击伤害翻倍</span></button>
+    <button class="board-act-btn hidden" id="btnFreeze"><span class="aicon">❄️</span><span class="albl">冻结</span><span class="acost">敌人的回合被跳过</span></button>
+    <button class="board-act-btn hidden" id="btnInsight"><span class="aicon">🔮</span><span class="albl">洞察</span><span class="acost">换牌次数增加1次</span></button>
+    <button class="board-act-btn hidden" id="btnArmor"><span class="aicon">🛡️</span><span class="albl">坚韧</span><span class="acost">+回复两点血量并增加2点护盾值</span></button>
+    <button class="board-act-btn hidden" id="btnLegend"><span class="aicon">⚜️</span><span class="albl">传奇</span><span class="acost">全场敌人受到3点伤害</span></button>
+    <button class="board-act-btn hidden" id="btnRebirth"><span class="aicon">💖</span><span class="albl">重生</span><span class="acost">生命状态回满</span></button>
+  </div>
+  <button class="confirm-btn" id="btnEndRound">✓ 确认，结束回合</button>
+  <div class="board-toast" id="boardToast"></div>
+</div>
+
+<!-- 重置按钮 -->
+<button class="btn-reset" id="btnReset">
+  <span class="material-symbols-outlined" style="font-size:14px">refresh</span> 重置游戏
+</button>
+<div class="info-btns" id="infoBtns" style="display:flex;gap:4px;flex-shrink:0;margin:2px 0">
+  <button id="btnDeck" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif">📋 牌堆</button>
+  <button id="refToggle" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif">📖 牌型</button>
+</div>
+
+<!-- 历史记录 -->
+<div class="history-container">
+  <div class="history-title">历史记录</div>
+  <div class="history" id="history"></div>
+</div>
+
+<!-- 主界面 -->
+<div class="menu-screen" id="menuScreen">
+  <div class="menu-title">Paper Knight</div>
+  <div class="menu-sub">卡牌 · 战棋 · 策略</div>
+  <button class="menu-btn" id="btnStart">开始游戏</button>
+</div>
+
+<!-- 职业选择 -->
+<div class="class-screen hidden" id="classScreen">
+  <div class="class-title">选择职业</div>
+  <div class="class-grid">
+    <div class="class-card" id="classKnight">
+      <img class="cicon" src="img/knight.png" />
+      <div class="cname">骑士</div>
+      <div class="cdesc">均衡型 · 攻守兼备</div>
+    </div>
+    <div class="class-card locked">
+      <img class="cicon" src="img/ranger.png" />
+      <div class="cname">游侠</div>
+      <div class="cdesc">开发中</div>
+    </div>
+    <div class="class-card locked">
+      <img class="cicon" src="img/mage.png" />
+      <div class="cname">法师</div>
+      <div class="cdesc">开发中</div>
+    </div>
+    <div class="class-card locked">
+      <img class="cicon" src="img/Berserker.png" />
+      <div class="cname">狂战士</div>
+      <div class="cdesc">开发中</div>
+    </div>
+  </div>
+</div>
+
+<!-- 章节选择 -->
+<div class="chapter-select-screen hidden" id="chapterSelectScreen">
+  <div class="cstitle">选择章节</div>
+  <div class="chapter-card" id="chTutorial">
+    <div class="cname">📖 新手试炼</div>
+    <div class="cdetail">3 场简单战斗 · 熟悉规则</div>
+  </div>
+  <div class="chapter-card" id="chMain">
+    <div class="cname">👹 石像鬼之巢</div>
+    <div class="cdetail">完整冒险 · Boss 战</div>
+  </div>
+</div>
+
+<!-- 章节地图 -->
+<div class="chapter-screen hidden" id="chapterScreen">
+  <div class="chapter-header">
+    <div class="chapter-title">第一章</div>
+    <div class="chapter-name">石像鬼之巢</div>
+  </div>
+  <div class="chapter-status" id="chapterStatus">
+    <div class="cstat"><div class="lbl">❤️ HP</div><div class="val red" id="csHp">10/10</div></div>
+    <div class="cstat"><div class="lbl">🛡️ 护甲</div><div class="val" id="csArmor">0</div></div>
+    <div class="cstat"><div class="lbl">⚔️ 攻击力</div><div class="val gold" id="csTokens">2</div></div>
+    <div class="cstat"><div class="lbl">⭐ 强化</div><div class="val" id="csBuffs">0</div></div>
+  </div>
+  <div class="map-area" id="mapArea"></div>
+  <div class="node-tooltip hidden" id="nodeTooltip"></div>
+  <button class="enter-btn hidden" id="enterNodeBtn">进入节点</button>
+  <div class="chapter-buffs" id="chapterBuffs"></div>
+</div>
+
+<!-- 奖励界面 -->
+<div class="reward-screen hidden" id="rewardScreen">
+  <div class="reward-header">选择一项奖励</div>
+  <div class="reward-cards" id="rewardCards"></div>
+</div>
+
+<!-- 营地界面 -->
+<div class="camp-screen hidden" id="campScreen">
+  <div class="camp-header">♨️ 营地</div>
+  <div class="camp-desc">在篝火旁稍作休整</div>
+  <div class="camp-options">
+    <button class="camp-btn" id="btnCampHeal">💚 休息<br><small>回复 3 点生命</small></button>
+    <button class="camp-btn" id="btnCampBuff">⚔️ 磨炼<br><small>获得一个战斗强化</small></button>
+  </div>
+</div>
+
+<!-- 胜利界面 -->
+<div class="victory-overlay hidden" id="victoryOverlay">
+  <div class="victory-dialog">
+    <div class="victory-icon">🏆</div>
+    <div class="victory-title">章节通关！</div>
+    <div class="victory-desc">石像鬼队长已被击败</div>
+    <button class="victory-btn" id="btnVictoryRestart">重新开始</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+(function() {
+  // ── BGM 模块（双轨同时播放，切换 = 音量交叉渐变）──
+  const bgm = {
+    card:   new Audio('bgm/1.MP3'),
+    battle: new Audio('bgm/2.MP3')
+  };
+  Object.values(bgm).forEach(a => { a.loop = true; a.volume = 0; });
+
+  let currentBGM = null;
+  let bgmUnlocked = false;
+  let bgmVolume = 0.5;
+  const VOL_STEPS = [0.5, 0.2, 0];
+  const VOL_ICONS = ['🔊', '🔉', '🔇'];
+
+  function switchBGM(track) {
+    if (!bgmUnlocked) return;
+    if (currentBGM === track) return;
+    currentBGM = track;
+    fadeAudio(bgm.card,   track === 'card'   ? bgmVolume : 0, 400);
+    fadeAudio(bgm.battle, track === 'battle' ? bgmVolume : 0, 400);
+  }
+
+  function setBGMVolume(vol) {
+    bgmVolume = vol;
+    if (currentBGM) {
+      fadeAudio(bgm[currentBGM], bgmVolume, 200);
+    }
+  }
+
+  document.getElementById('volBtn').addEventListener('click', () => {
+    const idx = VOL_STEPS.indexOf(bgmVolume);
+    const next = VOL_STEPS[(idx + 1) % VOL_STEPS.length];
+    setBGMVolume(next);
+    document.getElementById('volBtn').textContent = VOL_ICONS[VOL_STEPS.indexOf(next)];
+  });
+
+  function fadeAudio(audio, targetVol, ms) {
+    const start = audio.volume;
+    const diff = targetVol - start;
+    const steps = Math.round(ms / 16);
+    let i = 0;
+    const t = setInterval(() => {
+      i++;
+      audio.volume = Math.min(1, Math.max(0, start + diff * (i / steps)));
+      if (i >= steps) clearInterval(t);
+    }, 16);
+  }
+
+  // 首次交互解锁：两轨同时开始播放，默认卡牌轨有声
+  function unlockBGM() {
+    if (bgmUnlocked) return;
+    bgmUnlocked = true;
+    bgm.card.play().catch(() => {});
+    bgm.battle.play().catch(() => {});
+    switchBGM('card');
+    document.removeEventListener('click', unlockBGM);
+    document.removeEventListener('keydown', unlockBGM);
+  }
+  document.addEventListener('click', unlockBGM);
+  document.addEventListener('keydown', unlockBGM);
+
+  // ── 返回按钮 ──
+  let navStack = [];
+  function pushNav(mode) { navStack.push(mode); updateBackBtn(); }
+  function updateBackBtn() {
+    const $back = document.getElementById('backBtn');
+    if (navStack.length <= 1 || gameMode === 'battle') { $back.classList.add('hidden'); }
+    else { $back.classList.remove('hidden'); }
+  }
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (navStack.length < 2) return;
+    navStack.pop(); // remove current
+    const prev = navStack[navStack.length - 1];
+    navStack.pop(); // will be re-pushed by showScreen
+    if (prev) showScreen(prev);
+  });
+
+  // ── SFX 音效模块 ──
+  const SFX = {
+    battle1: new Audio('effect/487830__bendrain__cardboard_impact_04.wav'),
+    battle2: new Audio('effect/487831__bendrain__cardboard_impact_01.wav'),
+    battle3: new Audio('effect/487832__bendrain__cardboard_impact_02.wav'),
+    shuffle: new Audio('effect/666645__bboz87__shuffle_single.wav'),
+    cardClick: new Audio('effect/card_click.wav'),
+    cardRelease: new Audio('effect/card_release.wav'),
+    pageTurn: new Audio('effect/page-turn-2.mp3'),
+  };
+  Object.values(SFX).forEach(a => { a.volume = 0.5; });
+  SFX.pageTurn.volume = 0.6;
+  SFX.shuffle.volume = 0.4;
+
+  function playSFX(key) {
+    const s = SFX[key];
+    if (!s || !bgmUnlocked) return;
+    s.currentTime = 0;
+    s.play().catch(() => {});
+  }
+
+  const COLORS = ['red', 'green', 'blue', 'yellow'];
+  const COLOR_NAMES = { red: '红', green: '绿', blue: '蓝', yellow: '黄' };
+  const COLOR_SYMBOLS = { red: '†', green: '‡', blue: '◊', yellow: '★' };
+  const NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
+  const MAX_DISCARD_ACTIONS = 2;
+
+  let deck = [];
+  let hand = [];
+  let selected = new Set();
+  let totalScore = 0;
+  let lastScore = null;
+  let round = 1;
+  let handPlayed = false;
+  let waitingForConfirm = false;
+  let history = [];
+  let actionPoints = 0;
+  let discardActionsUsed = 0;
+  let handSort = 'num';
+  let playsThisRound = 0; // 每回合最多出牌2次
+
+  // ── 棋盘状态 ──
+  const ROWS=7, COLS=10;
+  const HERO_START = { r: 3, c: 0 };
+  const TERRAIN = { NORMAL: 0, SWAMP: 1, FIRE: 2, INK: 3 };
+  // 动态读取 CSS 格子尺寸
+  function cellW(){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell-w')); }
+  function cellH(){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell-h')); }
+  function sprW(k){ return Math.round(cellW() * k); }
+  function sprH(k){ return Math.round(cellH() * k); }
+
+  const ENEMY_TYPES = {
+    slime:  { name: '藤蔓怪', icon: '🟢', img: 'img/Slime.png', imgMove: 'img/slime_move.png', imgAtk: 'img/slime_attack.png', baseHp: 3, hpRange: [-1, 1], special: null, role: 'frontline' },
+    skeleton: { name: '恶魂', icon: '💀', img: 'img/bone.png', imgMove: 'img/bone_move.png', imgAtk: 'img/bone_attack.png', imgDead: 'img/bone_dead.png', imgBomb: 'img/bone_bomb.png', baseHp: 4, hpRange: [-1, 1], special: 'deathBoom', role: 'elite' },
+    mage:   { name: '吸血鬼', icon: '🔮', img: 'img/witcher.png', imgMove: 'img/witcher_move.png', imgAtk: 'img/witcher_attack.png', baseHp: 5, hpRange: [0, 0], special: 'lifesteal', role: 'backline' },
+    boss:   { name: '石像鬼队长', icon: '👹', img: 'img/gargoyle.jpg', imgMove: 'img/gargoyle_move.png', imgAtk: 'img/gargoyle_attack.png', baseHp: 12, hpRange: [0, 0], special: 'boss', role: 'boss' },
+  };
+
+  let map = [];
+  let terrain = [];
+  let terrainUses = [];
+  let hero = { r: 3, c: 0, hp: 10, maxHp: 10, armor: 0, facing: 'right', imgIdle: 'img/knight.png', imgMove: 'img/knight_move.png', imgAtk: 'img/knight_attack.png' };
+  let enemies = []; corpses = [];
+  let prevHero = null;
+  let prevEnemies = [];
+  let enemyIdCounter = 0;
+
+  // ── DOM 引用 ──
+  const $cardsArea     = document.getElementById('cardsArea');
+  const $handHint      = document.getElementById('handHint');
+  const $htName        = document.getElementById('htName');
+  const $htMult        = document.getElementById('htMult');
+  const $htToken       = document.getElementById('htToken');
+  const $btnPlay       = document.getElementById('btnPlay');
+  const $btnDiscard    = document.getElementById('btnDiscard');
+  const $btnEndRound   = document.getElementById('btnEndRound');
+  const $totalScore    = document.getElementById('totalScore');
+  const $scoreAP       = document.getElementById('scoreAP');
+  const $scoreBanner   = document.getElementById('scoreBanner');
+  const $playSub       = document.getElementById('playSub');
+  const $swapCount     = document.getElementById('swapCount');
+  const $swapMax       = document.getElementById('swapMax');
+  const $roundNum      = document.getElementById('roundNum');
+  const $history       = document.getElementById('history');
+  const $cardButtons   = document.getElementById('cardButtons');
+  const $cardStatBar   = document.getElementById('cardStatBar');
+  const $statHp        = document.getElementById('statHp');
+  const $statArmor     = document.getElementById('statArmor');
+  const $statSwap      = document.getElementById('statSwap');
+  const $statToken     = document.getElementById('statToken');
+  const $boardContainer = document.getElementById('boardContainer');
+  const $boardGrid     = document.getElementById('boardGrid');
+  const $boardLog      = document.getElementById('boardLog');
+  const $heroHP        = document.getElementById('heroHP');
+  const $heroArmor     = document.getElementById('heroArmor');
+  const $boardAP       = document.getElementById('boardAP');
+  const $boardTokens   = document.getElementById('boardTokens');
+  const $btnHeal       = document.getElementById('btnHeal');
+  const $btnShadow     = document.getElementById('btnShadow');
+  const $btnRage       = document.getElementById('btnRage');
+  const $btnFreeze     = document.getElementById('btnFreeze');
+  const $btnInsight    = document.getElementById('btnInsight');
+  const $btnArmor      = document.getElementById('btnArmor');
+  const $btnLegend     = document.getElementById('btnLegend');
+  const $btnRebirth    = document.getElementById('btnRebirth');
+
+  // ── 令牌系统（全部主动使用） ──
+  const TOKEN_INFO = {
+    '治疗': { name: '治疗', desc: '回复英雄1点生命值', sdesc:'血量回复1点', icon: '💚', passive: false },
+    '洞察': { name: '洞察', desc: '下回合可换牌次数+1（最多3次）', sdesc:'换牌次数增加1次', icon: '🔮', passive: false },
+    '无影': { name: '无影', desc: '本回合攻击后敌人不会反击', sdesc:'敌人反击无效', icon: '💨', passive: false },
+    '狂暴': { name: '狂暴', desc: '下次攻击伤害翻倍（2→4）', sdesc:'攻击伤害翻倍', icon: '💢', passive: false },
+    '冻结': { name: '冻结', desc: '下回合所有敌人跳过行动', sdesc:'敌人的回合被跳过', icon: '❄️', passive: false },
+    '坚韧': { name: '坚韧', desc: '回复2点生命并获得2点护甲', sdesc:'+回复两点血量并增加2点护盾值', icon: '🛡️', passive: false },
+    '传奇': { name: '传奇', desc: '全体敌人受到3点伤害&跳过下回合', sdesc:'全场敌人受到3点伤害', icon: '⚜️', passive: false },
+    '重生': { name: '重生', desc: '生命值恢复至最大值', sdesc:'生命状态回满', icon: '💖', passive: false },
+  };
+
+  // ── 章节系统 ──
+  const CHAPTERS = {
+    tutorial: {
+      name: '新手试炼',
+      nodes: [
+        { id:'start', type:'start', x:170, y:310, next:['t1'] },
+        { id:'t1', type:'tutorial', x:170, y:260, next:['t2'] },
+        { id:'t2', type:'tutorial', x:170, y:210, next:['t3'] },
+        { id:'t3', type:'tutorial', x:170, y:160, next:[] },
+      ],
+    },
+    main: {
+      name: '石像鬼之巢',
+      nodes: [
+        { id:'start', type:'start', x:170, y:310, next:['forkA','forkB'] },
+        { id:'forkA', type:'battle', x:100, y:240, next:['elite'] },
+        { id:'forkB', type:'battle', x:240, y:240, next:['elite'] },
+        { id:'elite',  type:'elite',  x:170, y:170, next:['camp'] },
+        { id:'camp',   type:'camp',   x:170, y:100, next:['boss'] },
+        { id:'boss',   type:'boss',   x:170, y:40,  next:[] },
+      ],
+    },
+  };
+  let CHAPTER = CHAPTERS.main;
+
+  const BUFF_POOLS = {
+    combat: [
+      { id:'pair_mastery', name:'对子精通', desc:'对子倍率 ×1.5 → ×2', pool:'combat' },
+      { id:'lone_wolf',    name:'孤狼',     desc:'单张基础分 +2',      pool:'combat' },
+      { id:'rage_plus',    name:'怒火',     desc:'狂暴伤害额外 +1',    pool:'combat' },
+      { id:'flurry',       name:'连斩',     desc:'击杀敌人后 +1 AP',   pool:'combat' },
+    ],
+    build: [
+      { id:'token_cap',    name:'扩容',     desc:'主动令牌上限 +1',    pool:'build' },
+      { id:'med_kit',      name:'急救包',   desc:'每场战斗开始 +2 HP', pool:'build' },
+      { id:'armor_up',     name:'铁壁',     desc:'初始护甲 +1',       pool:'build' },
+      { id:'deep_breath',  name:'深呼吸',   desc:'每回合 +1 换牌次数', pool:'build' },
+    ],
+  };
+  BUFF_POOLS.random = [...BUFF_POOLS.combat, ...BUFF_POOLS.build];
+
+  const NODE_TYPES = {
+    battle: { icon:'⚔', label:'战斗' },
+    elite:  { icon:'!', label:'精英' },
+    camp:   { icon:'♨', label:'营地' },
+    boss:   { icon:'👹', label:'Boss' },
+    start:  { icon:'★', label:'起点' },
+    tutorial: { icon:'📖', label:'新手' },
+    event:  { icon:'?', label:'事件' },
+    shop:   { icon:'$', label:'商店' },
+  };
+
+  let gameMode = 'chapter_map'; // 'chapter_map' | 'battle' | 'reward' | 'camp' | 'victory'
+  let tutorialStep = 0;
+  let chapterState = {
+    currentNodeId: 'start',
+    completedNodes: [],
+    heroHp: 10, heroMaxHp: 10, heroArmor: 0,
+    tokens: {},
+    buffs: [],
+    bossTurnCounter: 0,
+  };
+
+  let tokens = {};
+  let doubleDamage = false;
+  let freezeEnemies = false;
+  let skipEnemyTurn = false;
+  let noCounter = false;
+  let extraDiscards = 0;
+  let carryOverAP = 0;
+  let isAnimating = false;
+
+  function buildDeck() {
+    deck = [];
+    for (const color of COLORS) {
+      for (const num of NUMBERS) {
+        deck.push({ color, number: num });
+      }
+    }
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function drawHand() {
+    hand = [];
+    const drawCount = 6;
+    // 洞察效果由 extraDiscards 在 updateTurnDisplay 处理
+    drawFromDeck(drawCount);
+    sortHand();
+    selected.clear();
+    handPlayed = false;
+    renderAll(true);
+    $btnPlay.disabled = true;
+    $btnDiscard.disabled = true;
+    const obj = getTutorialObjective();
+    const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+    const isTut = node && node.type === 'tutorial';
+    if (obj || isTut) {
+      const sign = document.getElementById('tutorialSign');
+      document.getElementById('tsTitle').textContent = '📜 新手试炼';
+      const tNum = isTut ? parseInt(node.id.replace('t','')) : 0;
+      let hint = obj ? obj.hint : '';
+      if (!obj && tNum === 2) hint = '⚡ 行动点数（AP）\n 出牌得分 ÷ 5 + 1 = 可用 AP\n 移动消耗 1 AP · 攻击消耗 2 AP\n 合理分配AP，全灭敌人即可过关';
+      if (!obj && tNum === 3) hint = '⚔️ 最后一关\n运用前面学到的所有技巧\n击败敌人完成试炼！';
+      document.getElementById('tsDesc').innerHTML = hint.replace(/\n/g, '<br>');
+      sign.classList.remove('hidden');
+      setTimeout(() => sign.classList.add('show'), 50);
+    }
+    $htName.textContent = obj ? '🎯 ' + obj.hint : '请选择手牌';
+    $htMult.textContent = '';
+    $htToken.textContent = obj ? '奖励：' + obj.rewardName : '';
+    $playSub.textContent = '选择牌型';
+    updateTurnDisplay();
+  }
+
+  function drawFromDeck(count) {
+    while (count > 0 && deck.length > 0) {
+      hand.push(deck.shift());
+      count--;
+    }
+  }
+
+  function renderAll(animate) {
+    renderCards(animate);
+    updateScoreDisplay();
+    updateCardStats();
+    $roundNum.textContent = round;
+  }
+
+  let animatingCards = false;
+  function sortHand() {
+    if (handSort === 'num') hand.sort((a, b) => a.number - b.number || COLORS.indexOf(a.color) - COLORS.indexOf(b.color));
+    else hand.sort((a, b) => COLORS.indexOf(a.color) - COLORS.indexOf(b.color) || a.number - b.number);
+  }
+
+  function cardPositions() {
+    const spread = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-spread'));
+    const cardW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-w'));
+    const n = hand.length;
+    if (n <= 1) return [0];
+    return Array.from({length: n}, (_, i) => Math.round((i / (n - 1) - 0.5) * spread) - cardW/2);
+  }
+
+  function cardHTML(card) {
+    const ci = COLORS.indexOf(card.color);
+    return `<div class="card-inner"><div class="card-color-bar" style="background:${['#c84040','#4a7aaa','#4a9a60','#9a6ac8'][ci]}"></div><div class="card-suit">${COLOR_SYMBOLS[card.color]}</div><div class="card-num">${card.number}</div><div class="card-suit-bot">${COLOR_SYMBOLS[card.color]}</div></div>`;
+  }
+
+  function renderCards(animate) {
+    $cardsArea.innerHTML = '';
+    const offsets = cardPositions();
+    hand.forEach((card, i) => {
+      const el = document.createElement('div');
+      el.className = 'card ' + card.color + (selected.has(i) ? ' selected' : '');
+      el.style.left = `calc(50% + ${offsets[i]}px)`;  // left 在发牌时设定后永不改变
+      el.style.zIndex = i + 1;
+      el.innerHTML = cardHTML(card);
+      if (animate) { el.style.opacity = '0'; el.style.transform = 'translateX(-50%) translateY(160px) scale(0.5)'; }
+      el.addEventListener('click', () => toggleCard(i));
+      $cardsArea.appendChild(el);
+    });
+    if (animate) animateDeal();
+  }
+
+  async function animateDeal() {
+    animatingCards = true;
+    const cards = $cardsArea.querySelectorAll('.card');
+    for (let i = 0; i < cards.length; i++) {
+      await sleep(90);
+      playSFX('shuffle');
+      cards[i].style.transition = 'transform 0.38s cubic-bezier(0.2,0.8,0.4,1), opacity 0.2s';
+      cards[i].style.transform = 'translateX(-50%) translateY(0) scale(1)';
+      cards[i].style.opacity = '1';
+    }
+    // 动画结束：清除 inline transform/opacity，CSS 接管水平居中 + 选中抬起
+    await sleep(420);
+    cards.forEach(c => { c.style.transform = ''; c.style.transition = ''; c.style.opacity = ''; });
+    animatingCards = false;
+  }
+
+  async function animateSort(newOrder) {
+    animatingCards = true;
+    const offsets = cardPositions();
+    const cards = $cardsArea.querySelectorAll('.card');
+    // 统计位置变动数
+    let moved = 0;
+    const reordered = newOrder.map((oldIdx, newIdx) => {
+      if (oldIdx !== newIdx) moved++;
+      return cards[oldIdx];
+    });
+    // 播放对应次数洗牌音效
+    (async () => {
+      for (let i = 0; i < moved; i++) { await sleep(70); playSFX('shuffle'); }
+    })();
+    reordered.forEach((el, newIdx) => {
+      el.style.transition = 'left 0.2s cubic-bezier(0.4,0,0.2,1), z-index 0s';
+      el.style.left = `calc(50% + ${offsets[newIdx]}px)`;
+      el.style.zIndex = newIdx + 1;
+      $cardsArea.appendChild(el);
+    });
+    await sleep(220);
+    const newHand = newOrder.map(i => hand[i]);
+    hand.length = 0; hand.push(...newHand);
+    animatingCards = false;
+  }
+
+  function toggleCard(i) {
+    if (handPlayed || animatingCards) return;
+    if (selected.has(i)) { playSFX('cardRelease'); selected.delete(i); }
+    else if (selected.size < 5) { playSFX('cardClick'); selected.add(i); }
+    else return;
+
+    const cards = $cardsArea.querySelectorAll('.card');
+    cards.forEach((el, idx) => {
+      if (selected.has(idx)) el.classList.add('selected');
+      else el.classList.remove('selected');
+    });
+    updateHint();
+  }
+
+  function getActiveTokenCount() {
+    return Object.entries(tokens)
+      .filter(([k]) => !TOKEN_INFO[k].passive)
+      .reduce((sum, [, v]) => sum + v, 0);
+  }
+
+  function updateCardStats() {
+    $statHp.textContent = hero.hp + '/' + hero.maxHp;
+    $statArmor.textContent = hero.armor;
+    $statToken.textContent = actionPoints;
+    updateTokenBag();
+  }
+
+  function updateTurnDisplay() {
+    if (!$scoreBanner.classList.contains('preview')) {
+      const ap = actionPoints;
+      $scoreAP.textContent = '+' + ap + ' AP';
+      $totalScore.textContent = totalScore;
+    }
+    $swapCount.textContent = discardActionsUsed;
+    $swapMax.textContent = getMaxDiscards();
+    $statToken.textContent = actionPoints;
+    $btnDiscard.disabled = selected.size === 0 || discardActionsUsed >= getMaxDiscards() || handPlayed;
+    document.getElementById('swapSub').textContent = '剩 ' + Math.max(0, getMaxDiscards() - discardActionsUsed) + ' 次';
+    const playsLeft = 2 - playsThisRound;
+    $playSub.textContent = playsLeft > 0 ? '剩 ' + playsLeft + ' 次出牌' : '已出完';
+  }
+
+  function calculateScore() {
+    const idxs = Array.from(selected).sort((a, b) => a - b);
+    if (idxs.length === 0) return { base: 0, multiplier: 0, type: '未选择', token: null };
+
+    const chosen = idxs.map(i => hand[i]);
+    const base = chosen.reduce((sum, c) => sum + c.number, 0);
+
+    const byNumber = {};
+    const byColor = {};
+    chosen.forEach(c => {
+      if (!byNumber[c.number]) byNumber[c.number] = [];
+      byNumber[c.number].push(c);
+      if (!byColor[c.color]) byColor[c.color] = [];
+      byColor[c.color].push(c);
+    });
+
+    const isSameColor = (group) => group.length > 0 && group.every(c => c.color === group[0].color);
+    const numbers = Object.keys(byNumber).map(Number).sort((a, b) => a - b);
+    const counts = Object.values(byNumber).map(g => g.length);
+    const maxCount = Math.max(...counts);
+    const countSorted = [...counts].sort((a, b) => b - a);
+    const isConsecutive = numbers.length >= 5 && numbers[4] - numbers[0] === 4;
+
+    // 1) 同花顺（5张同色连续）→ ×5
+    if (chosen.length >= 5 && isConsecutive && isSameColor(chosen)) {
+      return { base, multiplier: 5, type: '同花顺 ×5', token: '传奇' };
+    }
+    // 2) 同花（5张同色）→ ×1.5（仅次于同花顺）
+    if (chosen.length >= 5 && isSameColor(chosen)) {
+      return { base, multiplier: 1.5, type: '同花 ×1.5', token: '洞察' };
+    }
+    // 3) 四张相同 → ×3
+    if (maxCount >= 4) {
+      const num = +Object.keys(byNumber).find(n => byNumber[n].length >= 4);
+      return { base: num * 4, multiplier: 3, type: `四张相同(${num}) ×3`, token: '重生' };
+    }
+    // 4) 葫芦（三条+一对）→ ×3
+    if (countSorted.length >= 2 && countSorted[0] >= 3 && countSorted[1] >= 2) {
+      const n3 = +Object.keys(byNumber).find(n => byNumber[n].length >= 3);
+      const n2 = +Object.keys(byNumber).find(n => +n !== n3 && byNumber[n].length >= 2);
+      return { base: n3 * 3 + n2 * 2, multiplier: 3, type: '葫芦 ×3', token: '坚韧' };
+    }
+    // 5) 顺子（5张连续，不同色）→ ×2.5
+    if (chosen.length >= 5 && isConsecutive) {
+      return { base, multiplier: 2.5, type: '顺子 ×2.5', token: '冻结' };
+    }
+    // 6) 三条 → ×2.5
+    if (maxCount >= 3) {
+      const num = +Object.keys(byNumber).find(n => byNumber[n].length >= 3);
+      return { base: num * 3, multiplier: 2.5, type: `三条(${num}) ×2.5`, token: '狂暴' };
+    }
+    // 7) 两对 → ×2
+    if (countSorted.length >= 2 && countSorted[0] >= 2 && countSorted[1] >= 2) {
+      const pairs = Object.keys(byNumber).filter(n => byNumber[n].length >= 2).map(Number);
+      const n1 = pairs[0], n2 = pairs[1];
+      return { base: n1 * 2 + n2 * 2, multiplier: 2, type: '两对 ×2', token: '治疗' };
+    }
+    // 8) 对子 → ×1.5（对子精通：×2）
+    if (maxCount >= 2) {
+      const num = +Object.keys(byNumber).find(n => byNumber[n].length >= 2);
+      const mult = hasBuff('pair_mastery') ? 2 : 1.5;
+      return { base: num * 2, multiplier: mult, type: `对子(${num}) ×${mult}`, token: '无影' };
+    }
+    // 9) 单张 → ×1（孤狼：+2基础分）
+    const bestNum = Math.max(...numbers);
+    const bonus = hasBuff('lone_wolf') ? 2 : 0;
+    return { base: bestNum + bonus, multiplier: 1, type: '单张 ×1', token: null };
+  }
+
+  function updateHint() {
+    if (handPlayed) {
+      $htName.textContent = '本回合已打出牌';
+      $htMult.textContent = '';
+      $htToken.textContent = '';
+      $btnPlay.disabled = true;
+      $playSub.textContent = '已出牌';
+      $scoreBanner.classList.remove('preview');
+    } else if (selected.size === 0) {
+      $htName.textContent = '请选择手牌';
+      $htMult.textContent = '';
+      $htToken.textContent = '';
+      $btnPlay.disabled = true;
+      $playSub.textContent = '选择牌型';
+      $totalScore.textContent = totalScore;
+      $scoreAP.textContent = '+' + actionPoints + ' AP';
+      $scoreBanner.classList.remove('preview');
+    } else {
+      const result = calculateScore();
+      const finalScore = Math.floor(result.base * result.multiplier);
+      const ap = Math.floor(finalScore / 5) + 1;
+      $htName.textContent = result.type;
+      $htMult.textContent = '×' + result.multiplier;
+      $htToken.textContent = result.token ? TOKEN_INFO[result.token].icon + ' ' + result.token : '';
+      $btnPlay.disabled = false;
+      $playSub.textContent = finalScore + '分 → ' + ap + ' AP';
+      $totalScore.textContent = totalScore + finalScore;
+      $scoreAP.textContent = '+' + ap + ' AP';
+      $scoreBanner.classList.add('preview');
+    }
+    updateTurnDisplay();
+  }
+
+  function playHand() {
+    if (selected.size === 0 || handPlayed) return;
+
+    const result = calculateScore();
+    // 教程目标校验
+    const tObj = getTutorialObjective();
+    if (tObj) {
+      const handName = result.type.replace(/\(.*?\)/g, '').split(' ')[0];
+      const score = Math.floor(result.base * result.multiplier);
+      if (!tObj.check(handName, score)) {
+        $htName.textContent = '⚠️ 需要' + tObj.hint + '（当前：' + handName + ' ' + score + '分）';
+        return;
+      }
+    }
+    const points = Math.floor(result.base * result.multiplier);
+    totalScore += points;
+    lastScore = points;
+    handPlayed = true;
+
+    let tokenGranted = false;
+    if (result.token) {
+      const activeTokens = getActiveTokenCount();
+      if (activeTokens >= getMaxTokens()) {
+        $htToken.textContent = '⚠️ 令牌背包已满，' + TOKEN_INFO[result.token].name + '令牌未能获得';
+        // 教程关弹出令牌说明
+        const tnode = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+        if (tnode && tnode.type === 'tutorial') {
+          setTimeout(() => {
+            const sign = document.getElementById('tutorialSign');
+            document.getElementById('tsTitle').textContent = '🎒 令牌系统';
+            document.getElementById('tsDesc').innerHTML = '令牌在出牌时获得<br>背包最多存放' + getMaxTokens() + '个令牌<br>点击已有令牌可使用<br>使用后腾出空间才能获得新令牌';
+            sign.classList.remove('hidden');
+            setTimeout(() => sign.classList.add('show'), 50);
+          }, 400);
+        }
+      } else {
+        tokens[result.token] = (tokens[result.token] || 0) + 1;
+        tokenGranted = true;
+      }
+    }
+
+    const earnedAP = Math.floor(points / 5) + 1 + (playsThisRound === 0 ? carryOverAP : 0);
+    if (playsThisRound === 0) carryOverAP = 0;
+    extraDiscards = 0; // 洞察效果在本回合卡牌阶段已使用，清零
+    actionPoints += earnedAP; // 两次出牌AP累加
+
+    history.unshift({ round, points, ap: earnedAP, type: result.type, token: tokenGranted ? result.token : null, cards: Array.from(selected).map(i => hand[i]) });
+
+    const cards = $cardsArea.querySelectorAll('.card');
+    selected.forEach(i => cards[i].classList.add('card-out'));
+
+    setTimeout(() => {
+      removeSelectedCards();
+      selected.clear();
+      renderAll();
+      // 计分动画
+      $scoreBanner.classList.remove('bump');
+      void $scoreBanner.offsetWidth;
+      $scoreBanner.classList.add('bump');
+      $totalScore.classList.add('counting');
+      const duration = 300;
+      const start = performance.now();
+      const oldScore = totalScore - points;
+      const animateCount = (now) => {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        $totalScore.textContent = Math.floor(oldScore + points * eased);
+        if (progress < 1) requestAnimationFrame(animateCount);
+        else { $totalScore.textContent = totalScore; $totalScore.classList.remove('counting'); }
+      };
+      requestAnimationFrame(animateCount);
+      renderHistory();
+      const tokenNote = tokenGranted ? ' + ' + TOKEN_INFO[result.token].name : (result.token ? '（令牌已满 ' + getMaxTokens() + '/' + getMaxTokens() + '）' : '');
+      $htName.textContent = '得分：' + points + ' → ' + earnedAP + 'AP' + tokenNote;
+      $htMult.textContent = '';
+      $htToken.textContent = '';
+      $scoreBanner.classList.remove('preview');
+      $scoreAP.textContent = '+' + earnedAP + ' AP';
+      playsThisRound++;
+      updateTurnDisplay();
+      updateCardStats();
+      // 教程关：达标后给奖励
+      if (tObj) {
+        tokens[tObj.reward] = (tokens[tObj.reward] || 0) + 1;
+        $htName.textContent = '✅ 完成！获得：' + tObj.rewardName + '令牌';
+        $htToken.textContent = TOKEN_INFO[tObj.reward].icon + ' ' + tObj.rewardName;
+        updateTokenBag();
+        tutorialStep++;
+        const node2 = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+        const nextObj = getTutorialObjective();
+        if (nextObj) {
+          // 还有下一步目标
+          setTimeout(() => {
+            const sign = document.getElementById('tutorialSign');
+            document.getElementById('tsTitle').textContent = '📜 新手试炼';
+            document.getElementById('tsDesc').innerHTML = nextObj.hint.replace(/\n/g, '<br>');
+            sign.classList.remove('hidden');
+            setTimeout(() => sign.classList.add('show'), 50);
+            buildDeck(); deck = shuffle(deck); drawHand();
+          }, 1200);
+        } else {
+          // 全部完成，进入下一关
+          saveChapterState();
+          chapterState.completedNodes.push(node2.id);
+          renderBoard();
+          setTimeout(() => {
+            chapterState.currentNodeId = node2.next[0] || node2.id;
+            tutorialStep = 0;
+            renderChapterMap();
+            showScreen('chapter_map');
+          }, 1500);
+        }
+        return;
+      }
+      if (playsThisRound >= 2) {
+        showBoard();
+      } else {
+        // 二次出牌：保留剩余手牌，补抽至6张
+        const need = 6 - hand.length;
+        if (need > 0) { if (!deck.length) { buildDeck(); deck = shuffle(deck); } drawFromDeck(need); }
+        sortHand();
+        selected.clear();
+        handPlayed = false;
+        renderAll(false);
+        updateHint();
+        // 只给新牌播动画
+        if (need > 0) {
+          const allC = $cardsArea.querySelectorAll('.card');
+          const newC = Array.from(allC).slice(-need);
+          newC.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateX(-50%) translateY(160px) scale(0.5)'; });
+          (async () => {
+            for (let i = 0; i < newC.length; i++) {
+              await sleep(90);
+              playSFX('shuffle');
+              newC[i].style.transition = 'transform 0.38s cubic-bezier(0.2,0.8,0.4,1), opacity 0.2s';
+              newC[i].style.transform = 'translateX(-50%) translateY(0) scale(1)';
+              newC[i].style.opacity = '1';
+            }
+            await sleep(420);
+            newC.forEach(c => { c.style.transform = ''; c.style.transition = ''; c.style.opacity = ''; });
+          })();
+        }
+      }
+    }, 200);
+  }
+
+  function removeSelectedCards() {
+    const idxs = Array.from(selected).sort((a, b) => b - a);
+    idxs.forEach(i => hand.splice(i, 1));
+  }
+
+  async function endRound() {
+    if (isAnimating) return;
+    isAnimating = true;
+    try {
+    if (waitingForConfirm) {
+      waitingForConfirm = false;
+      if (doubleDamage) { doubleDamage = false; }
+      if (freezeEnemies) { freezeEnemies = false; }
+      if (noCounter) { noCounter = false; }
+      hideBoard();
+      switchBGM('battle');
+      round++;
+      actionPoints = 0;
+      discardActionsUsed = 0;
+      handPlayed = false;
+      playsThisRound = 0;
+      buildDeck();
+      deck = shuffle(deck);
+      drawHand();
+      renderHistory();
+      updateScoreDisplay();
+      updateCardStats();
+      updateTurnDisplay();
+      $btnEndRound.textContent = '✓ 结束回合';
+      $btnEndRound.disabled = false;
+      return;
+    }
+
+    if (handPlayed) {
+      if (skipEnemyTurn) {
+        skipEnemyTurn = false;
+        // 即使跳过敌人回合，尸体仍要爆炸
+        if (corpses.length > 0) { await processCorpses([]); }
+        disableAllBoardButtons();
+        addLog('⚜️ 传奇令牌：敌人回合被跳过');
+        $htName.textContent = '⚜️ 传奇令牌生效：敌人回合被跳过！';
+        $btnEndRound.textContent = '✓ 确认';
+        $btnEndRound.disabled = false;
+        waitingForConfirm = true;
+        return;
+      }
+
+      disableAllBoardButtons();
+      const log = await enemyTurn();
+      const tFire = terrain[hero.r] && terrain[hero.r][hero.c];
+      if (tFire === TERRAIN.FIRE && hero.hp < hero.maxHp && terrainUses[hero.r][hero.c] < 2) {
+        hero.hp = Math.min(hero.maxHp, hero.hp + 2);
+        terrainUses[hero.r][hero.c]++;
+        const left = 2 - terrainUses[hero.r][hero.c];
+        log.push(`🔥 篝火回复 2 点生命${left > 0 ? '（剩余 ' + left + ' 次）' : '（已燃尽）'}`);
+      }
+      log.forEach(msg => addLog(msg));
+      renderBoard();
+      updateBoardButtons();
+
+      if (hero.hp <= 0) {
+        $htName.textContent = '💀 英雄阵亡！' + log.join('；');
+        $btnEndRound.disabled = true;
+        return;
+      }
+
+      disableAllBoardButtons();
+      $htName.textContent = '👾 敌人行动：' + log.join('；');
+      $btnEndRound.innerHTML = '<i class="material-symbols-outlined">check</i> 确认';
+      $btnEndRound.disabled = false;
+      waitingForConfirm = true;
+      return;
+    }
+
+    doubleDamage = false; freezeEnemies = false; noCounter = false; extraDiscards = 0;
+    round++;
+    actionPoints = 0;
+    discardActionsUsed = 0;
+    handPlayed = false;
+    playsThisRound = 0;
+    buildDeck();
+    deck = shuffle(deck);
+    drawHand();
+    renderHistory();
+    updateScoreDisplay();
+    updateCardStats();
+    updateTurnDisplay();
+    } finally { isAnimating = false; }
+  }
+
+  async function discardSelected() {
+    if (selected.size === 0 || handPlayed || discardActionsUsed >= getMaxDiscards() || animatingCards) return;
+    animatingCards = true;
+    discardActionsUsed++;
+    const count = selected.size;
+    const cards = $cardsArea.querySelectorAll('.card');
+    // 飞出动画
+    selected.forEach(i => {
+      cards[i].style.transition = 'transform 0.15s ease-in, opacity 0.15s';
+      cards[i].style.transform = 'translate(-50%, 100px) scale(0.8)';
+      cards[i].style.opacity = '0';
+    });
+    await sleep(170);
+    removeSelectedCards();
+    selected.clear();
+    drawFromDeck(count);
+    sortHand();
+    renderAll(false);
+    // 只给新抽的牌播放飞入动画
+    const allCards = $cardsArea.querySelectorAll('.card');
+    const newCards = Array.from(allCards).slice(-count);
+    newCards.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateX(-50%) translateY(160px) scale(0.5)'; });
+    for (let i = 0; i < newCards.length; i++) {
+      await sleep(90);
+      playSFX('shuffle');
+      newCards[i].style.transition = 'transform 0.38s cubic-bezier(0.2,0.8,0.4,1), opacity 0.2s';
+      newCards[i].style.transform = 'translateX(-50%) translateY(0) scale(1)';
+      newCards[i].style.opacity = '1';
+    }
+    await sleep(420);
+    newCards.forEach(c => { c.style.transform = ''; c.style.transition = ''; c.style.opacity = ''; });
+    updateHint();
+    updateTurnDisplay();
+    animatingCards = false;
+  }
+
+  // ── 行动日志 ──
+  function addLog(msg) {
+    const entry = document.createElement('div');
+    entry.textContent = '· ' + msg;
+    $boardLog.prepend(entry);
+    while ($boardLog.children.length > 20) $boardLog.lastChild.remove();
+  }
+
+  function clearLog() {
+    $boardLog.innerHTML = '';
+  }
+
+  // ── 棋盘渲染 ──
+  function renderBoard() {
+    $heroHP.textContent = hero.hp + '/' + hero.maxHp;
+    $heroArmor.textContent = hero.armor;
+    document.getElementById('tokenCount').textContent = getActiveTokenCount() + '/' + getMaxTokens();
+    $boardAP.textContent = actionPoints;
+
+    prevHero = { r: hero.r, c: hero.c };
+    prevEnemies = enemies.filter(e => e.hp > 0).map(e => ({ id: e.id, r: e.r, c: e.c }));
+
+    const activeTokens = Object.entries(tokens).filter(([k, v]) => v > 0);
+    if (activeTokens.length > 0) {
+      $boardTokens.classList.remove('hidden');
+      $boardTokens.innerHTML = activeTokens.map(([k, v]) =>
+        `<span class="token-badge">${TOKEN_INFO[k].icon} ${TOKEN_INFO[k].name} ×${v}</span>`
+      ).join('');
+    } else {
+      $boardTokens.classList.add('hidden');
+    }
+
+    $btnHeal.classList.toggle('hidden', !(tokens['治疗'] > 0));
+    $btnHeal.disabled = tokens['治疗'] <= 0 || hero.hp >= hero.maxHp;
+    if (tokens['治疗'] > 0 && hero.hp >= hero.maxHp) $btnHeal.style.opacity = '0.5';
+    else $btnHeal.style.opacity = '1';
+    $btnShadow.classList.toggle('hidden', !(tokens['无影'] > 0));
+    $btnShadow.disabled = false;
+    $btnRage.classList.toggle('hidden', !(tokens['狂暴'] > 0));
+    $btnRage.disabled = false;
+    $btnFreeze.classList.toggle('hidden', !(tokens['冻结'] > 0));
+    $btnFreeze.disabled = false;
+    $btnInsight.classList.toggle('hidden', !(tokens['洞察'] > 0));
+    $btnInsight.disabled = false;
+    $btnArmor.classList.toggle('hidden', !(tokens['坚韧'] > 0));
+    $btnArmor.disabled = false;
+    $btnLegend.classList.toggle('hidden', !(tokens['传奇'] > 0));
+    $btnLegend.disabled = false;
+    $btnRebirth.classList.toggle('hidden', !(tokens['重生'] > 0));
+    $btnRebirth.disabled = false;
+
+    $boardGrid.innerHTML = '';
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'board-cell';
+        if (r % 2 === 1) cell.classList.add('hex-offset');
+        cell.dataset.r = r;
+        cell.dataset.c = c;
+        cell.style.zIndex = r * 10; // 近处行 z-index 更高
+
+        if (!map[r] || !map[r][c]) {
+          cell.classList.add('wall');
+        } else {
+          const t = terrain[r] && terrain[r][c];
+          const tUsed = terrainUses[r] && terrainUses[r][c];
+          const tMax = (t === TERRAIN.FIRE) ? 2 : (t === TERRAIN.INK) ? 1 : Infinity;
+          if (t && tUsed < tMax) {
+            if (t === TERRAIN.SWAMP) cell.classList.add('swamp');
+            if (t === TERRAIN.FIRE) cell.classList.add('fire');
+            if (t === TERRAIN.INK) cell.classList.add('ink');
+          }
+
+          if (r === hero.r && c === hero.c) {
+            cell.classList.add('hero');
+          } else {
+            const enemyHere = enemies.find(e => e.r === r && e.c === c && e.hp > 0);
+            if (enemyHere) {
+              cell.classList.add('enemy');
+            }
+          }
+          if (c === 9 && isBossStage() && map[r] && map[r][c] && !(r === hero.r && c === hero.c)) {
+            cell.classList.add('exit-zone');
+          }
+        }
+        $boardGrid.appendChild(cell);
+      }
+    }
+    updateObjectiveUI();
+
+    // 高亮移动范围
+    if (typeof getHexNeighbors === 'function') {
+      getHexNeighbors(hero.r, hero.c).forEach(([nr, nc]) => {
+        const ncell = document.querySelector(`[data-r="${nr}"][data-c="${nc}"]`);
+        if (ncell) ncell.classList.add('in-range');
+      });
+    }
+
+  // ── 精灵层 ──
+    buildCellCenterCache(); // 关闭 rotateX 读真实DOM坐标，写入缓存
+    const $terrainLayer = document.getElementById('terrainLayer');
+    const $charLayer = document.getElementById('charLayer');
+    $terrainLayer.innerHTML = '';
+    $charLayer.innerHTML = '';
+    const makeSprite = (layer, r, c, w, h, innerHTML, animate) => {
+      const el = document.createElement('div');
+      el.className = 'sprite';
+      el.style.width = w + 'px'; el.style.height = h + 'px';
+      const pos = getCellCenter(r, c);
+      el.style.left = pos.x + 'px';
+      el.style.top  = pos.y + 'px';
+      el.style.transform = 'translate(-50%, -95%) rotateX(-70deg)';
+      el.style.transformOrigin = 'bottom center';
+      el.innerHTML = innerHTML;
+      if (animate) {
+        const img = el.querySelector('img');
+        if (img) {
+          img.style.transform = animate.from;
+          requestAnimationFrame(() => { img.style.transform = animate.to; });
+        }
+      }
+      layer.appendChild(el);
+      return el;
+    };
+
+    // ═══ 底层：地形 + 墙壁 ═══
+    const T_Y = { [TERRAIN.SWAMP]: -15, [TERRAIN.FIRE]: -45, [TERRAIN.INK]: -45 };
+    const T_IMG = { [TERRAIN.SWAMP]: 'swamp.png', [TERRAIN.FIRE]: 'fire.png', [TERRAIN.INK]: 'ink.png' };
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const t = terrain[r] && terrain[r][c];
+        const tUsed = terrainUses[r] && terrainUses[r][c];
+        const tMax = (t === TERRAIN.FIRE) ? 2 : (t === TERRAIN.INK) ? 1 : Infinity;
+        if (!t || tUsed >= tMax || !T_IMG[t]) continue;
+        const tY = T_Y[t] !== undefined ? T_Y[t] : -45;
+        const ts = makeSprite($terrainLayer, r, c, sprW(0.96), sprH(0.83), `<img src="img/${T_IMG[t]}" style="width:100%;height:100%;object-fit:contain" />`);
+        ts.style.transform = `translate(-50%, ${tY}%) rotateX(-70deg)`;
+        if (t === TERRAIN.FIRE) ts.title = '篝火 剩余' + (tMax - tUsed) + '次';
+      }
+    }
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (map[r] && map[r][c]) continue;
+        const ws = makeSprite($terrainLayer, r, c, sprW(0.96), sprH(0.83), `<img src="img/block.png" style="width:100%;height:100%;object-fit:contain" />`);
+        ws.style.transform = 'translate(-50%, -45%) rotateX(-70deg)';
+      }
+    }
+
+    // ═══ 上层：英雄 + 敌人 + 尸体 ═══
+    const ENEMY_Y_OFF = { '藤蔓怪': -55, '恶魂': -95, '吸血鬼': -65, '石像鬼队长': -95 };
+    const hdr = prevHero ? prevHero.r - hero.r : 0;
+    const hdc = prevHero ? prevHero.c - hero.c : 0;
+    const hRatio = hero.hp / hero.maxHp, hArmorRatio = hero.armor / hero.maxHp;
+    const hflip = hero.facing === 'right' ? 'scaleX(-1)' : 'scaleX(1)';
+    const hs = makeSprite($charLayer, hero.r, hero.c, sprW(0.91), sprH(0.91),
+      `<div class="hp-bar">${hero.armor > 0 ? `<div class="hp-bar-fill" style="width:${hArmorRatio*100}%;background:#7B9DB8"></div>` : ''}<div class="hp-bar-fill" style="width:${hRatio*100}%;background:#4A7A3A"></div></div>
+       <img src="${hero.imgIdle}" style="transform:${hflip}" />`,
+      hdr || hdc ? { from: `${hflip} translate(${hdc*100}%,${hdr*100}%)`, to: `${hflip} translate(0,0)` } : null);
+    hs.style.flexDirection = 'column';
+    hs.title = `${hero.hp}/${hero.maxHp}`;
+    hs.style.transform = 'translate(-50%,-65%) rotateX(-70deg)';
+
+    enemies.forEach(enemy => {
+      if (enemy.hp <= 0) return;
+      const prev = prevEnemies.find(pe => pe.id === enemy.id);
+      const edr = prev ? prev.r - enemy.r : 0;
+      const edc = prev ? prev.c - enemy.c : 0;
+      const ratio = enemy.hp / enemy.maxHp, eArmorRatio = (enemy.armor || 0) / enemy.maxHp;
+      const yPct = ENEMY_Y_OFF[enemy.type] !== undefined ? ENEMY_Y_OFF[enemy.type] : -95;
+      const eflip = (enemy.facing || 'left') === 'right' ? 'scaleX(-1)' : 'scaleX(1)';
+      const es = makeSprite($charLayer, enemy.r, enemy.c, sprW(0.83), sprH(0.83),
+        `<div class="hp-bar">${enemy.armor > 0 ? `<div class="hp-bar-fill" style="width:${eArmorRatio*100}%;background:#7B9DB8"></div>` : ''}<div class="hp-bar-fill" style="width:${ratio*100}%"></div></div>
+         <img src="${enemy.img}" style="transform:${eflip}" />`,
+        edr || edc ? { from: `${eflip} translate(${edc*100}%,${edr*100}%)`, to: `${eflip} translate(0,0)` } : null);
+      es.style.flexDirection = 'column';
+      es.style.transform = `translate(-50%, ${yPct}%) rotateX(-70deg)`;
+      es.title = `${enemy.hp}/${enemy.maxHp}`;
+    });
+
+    corpses.forEach(corpse => {
+      const cp = makeSprite($charLayer, corpse.r, corpse.c, sprW(0.83), sprH(0.83),
+        `<img src="${corpse.imgDead}" style="width:100%;height:100%;object-fit:contain" />`);
+      cp.style.transform = 'translate(-50%, -95%) rotateX(-70deg)';
+      cp.title = '不稳定的尸体';
+    });
+
+    // ═══ 调试可视化 ═══
+    const DEBUG = false;
+    if (DEBUG) {
+      // 1) 缓存坐标红点（sprite 应在此位置）
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cp = getCellCenter(r, c);
+          const dot = document.createElement('div');
+          dot.style.cssText = `position:absolute;left:${cp.x}px;top:${cp.y}px;width:6px;height:6px;background:red;border-radius:50%;transform:translate(-50%,-50%);z-index:99;pointer-events:none`;
+          $spriteLayer.appendChild(dot);
+        }
+      }
+      // 2) 精灵绿色边界框
+      document.querySelectorAll('#spriteLayer .sprite').forEach(s => {
+        s.style.outline = '1px dashed rgba(0,255,0,0.6)';
+      });
+      // 3) 逐格对比缓存坐标 vs 精灵实际 left/top
+      console.group('📐 坐标对比');
+      const sprites = document.querySelectorAll('#spriteLayer .sprite');
+      console.log(`精灵总数: ${sprites.length}, 缓存格子数: ${ROWS*COLS}`);
+      const heroPos = getCellCenter(hero.r, hero.c);
+      const heroSprite = sprites[0]; // 英雄总是第一个
+      if (heroSprite) {
+        console.log('英雄 缓存:', heroPos,
+          '| sprite style left/top:', heroSprite.style.left, heroSprite.style.top,
+          '| 差值:', {
+            dx: parseFloat(heroSprite.style.left) - heroPos.x,
+            dy: parseFloat(heroSprite.style.top) - heroPos.y
+          });
+      }
+      enemies.filter(e => e.hp > 0).forEach((e, i) => {
+        const ep = getCellCenter(e.r, e.c);
+        // 敌人 sprite 在 sprites[1+i]
+        const es = sprites[1 + i];
+        if (es) {
+          console.log(`敌人${i}(${e.r},${e.c}) 缓存:`, ep,
+            '| sprite left/top:', es.style.left, es.style.top,
+            '| 差值:', {
+              dx: parseFloat(es.style.left) - ep.x,
+              dy: parseFloat(es.style.top) - ep.y
+            });
+        }
+      });
+      console.groupEnd();
+    }
+
+    // ── 镜头跟随 ──
+    updateCamera(hero.r, hero.c);
+    // ── 小地图 ──
+    renderMinimap();
+  }
+
+  // ── 六边形邻居 ──
+  function getHexNeighbors(r, c) {
+    const odd = r % 2 === 1;
+    return [[r-1,c+(odd?0:-1)],[r-1,c+(odd?1:0)],[r,c-1],[r,c+1],[r+1,c+(odd?0:-1)],[r+1,c+(odd?1:0)]]
+      .filter(([nr,nc]) => nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && map[nr] && map[nr][nc]);
+  }
+  function isHexAdjacent(r1, c1, r2, c2) {
+    return getHexNeighbors(r1, c1).some(([nr, nc]) => nr === r2 && nc === c2);
+  }
+
+  // ── 格子坐标（DOM实测缓存，彻底消除公式偏差） ──
+  let cellCenters = [];
+  function buildCellCenterCache() {
+    const $scroll = document.getElementById('boardScroll');
+    const layer = document.getElementById('charLayer');
+    // 同时关闭 transform 和 transition，避免动画干扰读数
+    const prevTransform = $scroll.style.transform;
+    const prevTransition = $scroll.style.transition;
+    $scroll.style.transition = 'none';
+    $scroll.style.transform = 'none';
+    $scroll.offsetHeight; // 强制回流，确保样式生效
+    const lr = layer.getBoundingClientRect();
+    cellCenters = [];
+    for (let r = 0; r < ROWS; r++) {
+      cellCenters[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        const cell = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+        if (!cell) { cellCenters[r][c] = { x:0, y:0 }; continue; }
+        const cr = cell.getBoundingClientRect();
+        cellCenters[r][c] = {
+          x: cr.left - lr.left + cr.width  / 2,
+          y: cr.top  - lr.top  + cr.height / 2
+        };
+      }
+    }
+    $scroll.style.transform = prevTransform;
+    $scroll.style.transition = prevTransition;
+    // debug：打印第一格坐标供验证
+    if (cellCenters[0] && cellCenters[0][0]) {
+      console.log('buildCellCenterCache 第一格(0,0):', cellCenters[0][0],
+        '| layer rect:', {l:lr.left, t:lr.top, w:lr.width, h:lr.height});
+    }
+  }
+  function getCellCenter(r, c) {
+    return (cellCenters[r] && cellCenters[r][c]) || { x:0, y:0 };
+  }
+
+  // ── 镜头系统 ──
+  function updateCamera(hr, hc) {
+    const $scroll = document.getElementById('boardScroll');
+    const $wrap = $scroll.parentElement;
+    const vpW = $wrap.clientWidth;
+    const vpH = $wrap.clientHeight;
+    const pos = getCellCenter(hr, hc);
+    $scroll.style.transform = `translate(${vpW * 0.5 - pos.x}px, ${vpH * 0.55 - pos.y}px) rotateX(70deg)`;
+  }
+
+  // ── 小地图 ──
+  function renderMinimap() {
+    const mm = document.getElementById('minimap');
+    let html = '';
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        let cls = '';
+        if (!map[r] || !map[r][c]) cls = 'wall';
+        else if (r === hero.r && c === hero.c) cls = 'hero';
+        else if (enemies.some(e => e.hp > 0 && e.r === r && e.c === c)) cls = 'enemy';
+        else {
+          const t = terrain[r] && terrain[r][c];
+          const tUsed = terrainUses[r] && terrainUses[r][c];
+          const tMax = (t === TERRAIN.FIRE) ? 2 : (t === TERRAIN.INK) ? 1 : Infinity;
+          if (t && tUsed < tMax) {
+            if (t === TERRAIN.SWAMP) cls = 'swamp';
+            else if (t === TERRAIN.FIRE) cls = 'fire';
+            else if (t === TERRAIN.INK) cls = 'ink';
+          }
+        }
+        const off = (r % 2 === 1) ? ' mm-offset' : '';
+        html += `<div class="minimap-dot${off} ${cls}"></div>`;
+      }
+    }
+    mm.innerHTML = html;
+  }
+
+  function showBoard() {
+    switchBGM('battle');
+    const ts = document.getElementById('tutorialSign');
+    ts.classList.remove('show'); ts.classList.add('hidden');
+    // 教程关战斗告示牌
+    const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+    if (node && node.type === 'tutorial') {
+      const tNum = parseInt(node.id.replace('t','')) || 1;
+      setTimeout(() => {
+        let hint = '';
+        if (tNum === 2) hint = '<img src="img/Slime.png" style="width:48px;height:48px;object-fit:contain;float:right;margin-left:8px"><b>🟢 藤蔓怪</b> HP:3 近战<br>会主动靠近并攻击你<br>点击敌人相邻格子进行攻击';
+        if (tNum === 3) hint = '<div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:4px"><span style="font-size:9px;color:#8B7355">普通</span><img src="img/bone.png" style="width:36px;height:36px;object-fit:contain"><span style="font-size:9px;color:#8B7355">尸体</span><img src="img/bone_dead.png" style="width:36px;height:36px;object-fit:contain"><span style="font-size:9px;color:#8B7355">爆炸</span><img src="img/bone_bomb.png" style="width:36px;height:36px;object-fit:contain"></div><b>💀 恶魂</b> HP:4<br>死亡后留下尸体，回合结束时爆炸<br>对相邻单位造成1点伤害';
+        if (hint) {
+          document.getElementById('tsTitle').textContent = '📜 敌人图鉴';
+          document.getElementById('tsDesc').innerHTML = hint;
+          ts.classList.remove('hidden');
+          setTimeout(() => ts.classList.add('show'), 50);
+        }
+      }, 600);
+    }
+    $cardsArea.classList.add('hidden');
+    $cardButtons.classList.add('hidden');
+    $cardStatBar.classList.add('hidden');
+    document.getElementById('infoBtns').classList.add('hidden');
+    document.querySelector('.swap-info').classList.add('hidden');
+    $scoreBanner.classList.add('hidden');
+    document.getElementById('handHint').classList.add('hidden');
+    document.getElementById('tokenBag').classList.add('hidden');
+    document.querySelector('.sort-btns').classList.add('hidden');
+    $boardContainer.classList.remove('hidden');
+    clearLog();
+    renderBoard();
+    updateBoardButtons();
+  }
+
+  function hideBoard() {
+    $cardsArea.classList.remove('hidden');
+    $cardButtons.classList.remove('hidden');
+    $cardStatBar.classList.remove('hidden');
+    document.getElementById('infoBtns').classList.remove('hidden');
+    document.querySelector('.swap-info').classList.remove('hidden');
+    $scoreBanner.classList.remove('hidden');
+    document.getElementById('handHint').classList.remove('hidden');
+    document.getElementById('tokenBag').classList.remove('hidden');
+    document.querySelector('.sort-btns').classList.remove('hidden');
+    $boardContainer.classList.add('hidden');
+    updateCardStats();
+  }
+
+  function disableAllBoardButtons() {
+    ['btnAttack','btnHeal','btnShadow','btnRage','btnFreeze','btnInsight','btnArmor','btnLegend','btnRebirth','btnEndRound']
+      .forEach(id => { const b = document.getElementById(id); if (b) b.disabled = true; });
+  }
+
+  function updateBoardButtons() {
+    const apOk = actionPoints >= 1;
+    const canMove = apOk && hero.hp > 0;
+    const canGo = (dr, dc) => {
+      const nr = hero.r + dr, nc = hero.c + dc;
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return false;
+      if (!map[nr] || !map[nr][nc]) return false;
+      if (enemies.some(e => e.hp > 0 && e.r === nr && e.c === nc)) return false;
+      return true;
+    };
+    const costAt = (dr, dc) => {
+      const nr = hero.r + dr, nc = hero.c + dc;
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return 0;
+      if (!map[nr] || !map[nr][nc]) return 0;
+      return (terrain[nr] && terrain[nr][nc] === TERRAIN.SWAMP) ? 2 : 1;
+    };
+    const atkCost = 2;
+    const atkBtn = document.getElementById('btnAttack');
+    const aicon = atkBtn.querySelector('.aicon');
+    const albl = atkBtn.querySelector('.albl');
+    const acost = atkBtn.querySelector('.acost');
+    if (aicon) aicon.textContent = doubleDamage ? '💥' : '⚔️';
+    if (albl) albl.textContent = doubleDamage ? '攻击伤害翻倍' : '攻击';
+    if (acost) acost.textContent = `${atkCost} AP · ${doubleDamage ? '4' : '2'}伤`;
+    const adjacent = enemies.some(e => e.hp > 0 &&
+      isHexAdjacent(hero.r, hero.c, e.r, e.c));
+    atkBtn.disabled = !(actionPoints >= atkCost && adjacent && hero.hp > 0);
+  }
+
+  async function moveHero(dr, dc) {
+    if (hero.hp <= 0 || isAnimating) return;
+    const nr = hero.r + dr;
+    const nc = hero.c + dc;
+    if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return;
+    if (!map[nr] || !map[nr][nc]) return;
+    if (enemies.some(e => e.hp > 0 && e.r === nr && e.c === nc)) return;
+
+    let cost = (terrain[nr] && terrain[nr][nc] === TERRAIN.SWAMP) ? 2 : 1;
+    // 移动令牌已改为主动令牌「无影」，不再被动免AP
+    if (actionPoints < cost) return;
+
+    isAnimating = true;
+    // 朝向 + 滑动动画
+    playSFX('battle2');
+    const nx = getCellCenter(nr, nc).x, ox = getCellCenter(hero.r, hero.c).x;
+    if (nx > ox) hero.facing = 'right'; else if (nx < ox) hero.facing = 'left';
+    const oldP = getCellCenter(hero.r, hero.c), newP = getCellCenter(nr, nc);
+    let hspr = null;
+    for (const s of document.getElementById('charLayer').children) {
+      if (Math.abs(parseFloat(s.style.left) - oldP.x) < 2 && Math.abs(parseFloat(s.style.top) - oldP.y) < 2) { hspr = s; break; }
+    }
+    if (hspr) {
+      const im = hspr.querySelector('img'); if (im) { im.style.transform = 'scaleX(' + (hero.facing === 'right' ? -1 : 1) + ')'; im.src = hero.imgMove; }
+      hspr.style.transition = 'left 0.28s ease-out, top 0.28s ease-out';
+      hspr.style.left = newP.x + 'px'; hspr.style.top = newP.y + 'px';
+      await sleep(280); hspr.style.transition = '';
+    }
+    hero.r = nr; hero.c = nc;
+    actionPoints -= cost;
+    const swampNote = (cost > 1) ? '（泥沼）' : '';
+    const inkActive = terrain[nr] && terrain[nr][nc] === TERRAIN.INK && terrainUses[nr][nc] < 1;
+    const inkNote = inkActive ? '（🕳️ 陷入墨水池）' : '';
+    if (cost > 0) addLog(`移动至 (${nr},${nc})，消耗 ${cost} AP${swampNote}${inkNote}`);
+    else addLog(`移动至 (${nr},${nc})${inkNote}`);
+    renderBoard();
+    updateBoardButtons();
+    await sleep(150);
+
+    if (nc === 9 && bossAlive()) { showToast('⚠️ 必须先击杀Boss！'); }
+    checkVictory();
+    if (terrain[nr] && terrain[nr][nc] === TERRAIN.INK && terrainUses[nr][nc] < 1) {
+      terrainUses[nr][nc]++;
+      carryOverAP = actionPoints;
+      addLog(`🕳️ 陷入墨水池！回合提前结束，${carryOverAP} AP 保留至下回合`);
+      await endRound();
+    }
+    isAnimating = false;
+  }
+
+  async function heroAttack(pTarget) {
+    if (hero.hp <= 0 || isAnimating) return;
+    isAnimating = true;
+    try {
+    const target = pTarget || enemies.find(e => e.hp > 0 && isHexAdjacent(hero.r, hero.c, e.r, e.c));
+    if (!target) return;
+
+    let cost = 2;
+    if (actionPoints < cost) return;
+
+    let dmg = 2;
+    if (doubleDamage) { dmg = 4; doubleDamage = false; tokens['狂暴']--; addLog('💢 狂暴令牌：攻击伤害翻倍！'); }
+    if (hasBuff('rage_plus') && dmg >= 4) { dmg += 1; addLog('🔥 怒火强化：伤害 +1'); }
+
+    // Boss 护甲吸收
+    if (target.armor > 0) {
+      const blocked = Math.min(target.armor, dmg);
+      target.armor -= blocked;
+      dmg -= blocked;
+      if (blocked > 0) addLog(`🛡️ ${target.type}护甲抵挡 ${blocked} 点伤害`);
+    }
+
+    // 朝向目标
+    const tx = getCellCenter(target.r, target.c).x, hx = getCellCenter(hero.r, hero.c).x;
+    if (tx > hx) hero.facing = 'right'; else if (tx < hx) hero.facing = 'left';
+
+    // 攻击动画：英雄向目标突刺
+    playSFX('battle1');
+    await animateLunge(hero.r, hero.c, target.r - hero.r, target.c - hero.c, hero.facing, hero.imgAtk, hero.imgIdle);
+
+    if (dmg > 0) {
+      target.hp -= dmg;
+      actionPoints -= cost;
+      addLog(`⚔️ 攻击敌人，造成 ${dmg} 伤害`);
+    } else {
+      actionPoints -= cost;
+      addLog(`⚔️ 攻击被护甲完全抵挡`);
+    }
+
+    // 目标闪红
+    await flashDamage(target.r, target.c);
+
+    if (target.hp <= 0) {
+      totalScore += 30;
+      if (hasBuff('flurry')) { actionPoints += 1; addLog('⚡ 连斩：+1 AP'); }
+      addLog(`${target.icon} ${target.type}被击杀！+30 总分`);
+      playSFX('battle3');
+      if (target.special === 'deathBoom') {
+        corpses.push({ r: target.r, c: target.c, imgDead: target.imgDead, imgBomb: target.imgBomb, type: target.type, icon: target.icon });
+        addLog(`💀 ${target.type}倒下，留下了一具不稳定的尸体…`);
+      }
+      // 胜利检测
+      if (checkVictory()) { isAnimating = false; return; }
+    } else if (!noCounter && target.special !== 'ranged' && target.special !== 'boss') {
+      // 反击动画
+      const hx5 = getCellCenter(hero.r, hero.c).x, tx5 = getCellCenter(target.r, target.c).x;
+      if (hx5 > tx5) target.facing = 'right'; else if (hx5 < tx5) target.facing = 'left';
+      await animateLunge(target.r, target.c, hero.r - target.r, hero.c - target.c, target.facing || 'left', target.imgAtk, target.img);
+      let counterDmg = 1;
+      if (hero.armor > 0) {
+        const blocked = Math.min(hero.armor, counterDmg);
+        hero.armor -= blocked;
+        counterDmg -= blocked;
+        if (blocked > 0) addLog(`🛡️ 护甲抵挡 ${blocked} 点反击伤害`);
+      }
+      if (counterDmg > 0) {
+        hero.hp -= counterDmg;
+        addLog(`↩️ ${target.type}反击，造成 ${counterDmg} 点伤害`);
+        await flashDamage(hero.r, hero.c);
+      }
+    }
+    renderBoard();
+    updateBoardButtons();
+    updateScoreDisplay();
+    checkVictory();
+    } finally { isAnimating = false; }
+  }
+
+  function useHeal() {
+    if (!tokens['治疗'] || tokens['治疗'] <= 0) return;
+    if (hero.hp >= hero.maxHp) {
+      addLog('💚 治疗令牌：生命已满，无需治疗');
+      return;
+    }
+    tokens['治疗']--;
+    hero.hp = Math.min(hero.maxHp, hero.hp + 1);
+    addLog('💚 治疗令牌：回复 1 点生命（剩余 ' + hero.hp + '/' + hero.maxHp + '）');
+    renderBoard();
+    updateBoardButtons();
+  }
+
+  function useShadow() {
+    if (!tokens['无影'] || tokens['无影'] <= 0) return;
+    tokens['无影']--; noCounter = true;
+    addLog('💨 无影令牌：本回合攻击不触发反击');
+    renderBoard(); updateBoardButtons();
+  }
+  function useRage() {
+    if (!tokens['狂暴'] || tokens['狂暴'] <= 0) return;
+    tokens['狂暴']--; doubleDamage = true;
+    addLog('💢 狂暴令牌：下次攻击双倍伤害');
+    renderBoard(); updateBoardButtons();
+  }
+  function useFreeze() {
+    if (!tokens['冻结'] || tokens['冻结'] <= 0) return;
+    tokens['冻结']--; freezeEnemies = true;
+    addLog('❄️ 冻结令牌：下回合敌人无法行动');
+    renderBoard(); updateBoardButtons();
+  }
+  function useInsight() {
+    if (!tokens['洞察'] || tokens['洞察'] <= 0) return;
+    tokens['洞察']--; extraDiscards += 1;
+    addLog('🔮 洞察令牌：下回合换牌次数 +1');
+    renderBoard(); updateBoardButtons();
+  }
+  function useArmor() {
+    if (!tokens['坚韧'] || tokens['坚韧'] <= 0) return;
+    tokens['坚韧']--;
+    hero.hp = Math.min(hero.maxHp, hero.hp + 2);
+    hero.armor += 2;
+    addLog(`🛡️ 坚韧令牌：回复 2HP + 2 护甲（HP${hero.hp}/${hero.maxHp} 护甲${hero.armor}）`);
+    renderBoard();
+    updateBoardButtons();
+  }
+
+  function useLegend() {
+    if (!tokens['传奇'] || tokens['传奇'] <= 0) return;
+    tokens['传奇']--;
+    enemies.forEach(e => {
+      if (e.hp <= 0) return;
+      let dmg = 3;
+      if (e.armor > 0) {
+        const blocked = Math.min(e.armor, dmg);
+        e.armor -= blocked;
+        dmg -= blocked;
+      }
+      if (dmg > 0) e.hp -= dmg;
+    });
+    // 检查恶魂是否被炸死
+    enemies.forEach(e => {
+      if (e.hp <= 0 && e.special === 'deathBoom') {
+        corpses.push({ r: e.r, c: e.c, imgDead: e.imgDead, imgBomb: e.imgBomb, type: e.type, icon: e.icon });
+        addLog(`💀 ${e.type}被传奇令牌炸成尸体…`);
+      }
+    });
+    skipEnemyTurn = true;
+    addLog('⚜️ 传奇令牌：全体敌人受到 3 点伤害，下回合跳过');
+    renderBoard();
+    updateBoardButtons();
+    updateScoreDisplay();
+    checkVictory();
+  }
+
+  function useRebirth() {
+    if (!tokens['重生'] || tokens['重生'] <= 0) return;
+    tokens['重生']--;
+    hero.hp = hero.maxHp;
+    addLog('💖 重生令牌：生命回满！');
+    renderBoard();
+    updateBoardButtons();
+  }
+
+  // ── 地图生成 ──
+  function generateMap() {
+
+    map = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+    terrain = Array.from({length: ROWS}, () => Array(COLS).fill(TERRAIN.NORMAL));
+    terrainUses = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+
+    const walkable = [];
+    const inMap = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
+    const open = (r, c) => {
+      if (inMap(r, c) && map[r][c] === 0) { map[r][c] = 1; walkable.push([r, c]); }
+    };
+    open(HERO_START.r, HERO_START.c);
+    // 向四周开花，右侧多开几列（因为左侧是墙）
+    for (let d = 1; d <= 3; d++) {
+      open(HERO_START.r - d, HERO_START.c);
+      open(HERO_START.r + d, HERO_START.c);
+      open(HERO_START.r, HERO_START.c + d);
+      if (d <= 2) open(HERO_START.r, HERO_START.c - d);
+    }
+    // 确保出口列 c=9 有至少两个入口
+    open(HERO_START.r, 9);
+    open(HERO_START.r - 1, 9);
+    open(HERO_START.r + 1, 9);
+
+    const targetWalkable = 62 + Math.floor(Math.random() * 4); // 70格中至少62格可通行
+    const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+
+    while (walkable.length < targetWalkable) {
+      const shuffled = [...walkable].sort(() => Math.random() - 0.5);
+      let expanded = false;
+      for (const [r, c] of shuffled) {
+        const nb = dirs.map(([dr, dc]) => [r + dr, c + dc])
+          .filter(([nr, nc]) => nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && map[nr][nc] === 0);
+        if (nb.length > 0) {
+          const [nr, nc] = nb[Math.floor(Math.random() * nb.length)];
+          map[nr][nc] = 1;
+          walkable.push([nr, nc]);
+          expanded = true;
+          break;
+        }
+      }
+      if (!expanded) break;
+    }
+
+    const visited = Array.from({length: ROWS}, () => Array(COLS).fill(false));
+    const queue = [[HERO_START.r, HERO_START.c]];
+    visited[HERO_START.r][HERO_START.c] = true;
+    while (queue.length) {
+      const [r, c] = queue.shift();
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && !visited[nr][nc] && map[nr][nc] === 1) {
+          visited[nr][nc] = true;
+          queue.push([nr, nc]);
+        }
+      }
+    }
+    for (let r = 1; r < ROWS - 1; r++) {
+      for (let c = 1; c < COLS - 1; c++) {
+        if (map[r][c] === 1 && !visited[r][c]) {
+          for (const [dr, dc] of dirs) {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && map[nr][nc] === 0) {
+              map[nr][nc] = 1;
+              walkable.push([nr, nc]);
+              break;
+            }
+          }
+          map[r][c] = 1;
+        }
+      }
+    }
+
+    // 强制打通出口列 c=9：确保至少2行可抵达 c=9
+    const col9reachable = [];
+    for (let r = 0; r < ROWS; r++) {
+      if (map[r][9] && visited[r][9]) col9reachable.push(r);
+    }
+    if (col9reachable.length < 2) {
+      for (let r = 1; r < ROWS - 1; r++) {
+        // 找该行最靠右的可通行且已连通格
+        let bestC = -1;
+        for (let c = 8; c >= 0; c--) {
+          if (map[r][c] && visited[r][c]) { bestC = c; break; }
+        }
+        if (bestC >= 7) {
+          // 该行已接近出口，打通剩余
+          for (let c = bestC + 1; c <= 9; c++) { if (!map[r][c]) { map[r][c] = 1; walkable.push([r, c]); } }
+        }
+      }
+      // 兜底：从英雄行强开通道到 c=9
+      if (!map[HERO_START.r][9] || !visited[HERO_START.r][9]) {
+        for (let c = 0; c <= 9; c++) { map[HERO_START.r][c] = 1; }
+        map[HERO_START.r].forEach((_, c) => { if (!walkable.some(w => w[0] === HERO_START.r && w[1] === c)) walkable.push([HERO_START.r, c]); });
+      }
+    }
+
+    const terrainCount = 1 + Math.floor(Math.random() * 3);
+    const terrainPool = walkable.filter(([r, c]) =>
+      Math.abs(r - HERO_START.r) + Math.abs(c - HERO_START.c) >= 3
+    ).sort(() => Math.random() - 0.5);
+    const terrainTypes = [TERRAIN.SWAMP, TERRAIN.FIRE, TERRAIN.INK];
+    for (let i = 0; i < Math.min(terrainCount, terrainPool.length); i++) {
+      terrain[terrainPool[i][0]][terrainPool[i][1]] = terrainTypes[i % 3];
+    }
+
+    enemies = []; corpses = [];
+    // 多套敌人变体
+    const ENEMY_VARIANTS = [
+      { label:'slime x2 + skeleton',   types: ['slime','slime','skeleton'] },
+      { label:'slime x3',              types: ['slime','slime','slime'] },
+      { label:'slime + skeleton x2',   types: ['slime','skeleton','skeleton'] },
+      { label:'slime + skeleton + mage', types: ['slime','skeleton','mage'] },
+      { label:'skeleton x2 + slime',   types: ['skeleton','skeleton','slime'] },
+      { label:'slime x2 + mage',       types: ['slime','slime','mage'] },
+    ];
+    const variant = ENEMY_VARIANTS[Math.floor(Math.random() * ENEMY_VARIANTS.length)];
+    const typeList = variant.types.map(k => ENEMY_TYPES[k]);
+
+    const nearCells = [];
+    const midCells = [];
+    const farCells = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!map[r][c]) continue;
+        if (r === HERO_START.r && c === HERO_START.c) continue;
+        const dist = Math.abs(r - HERO_START.r) + Math.abs(c - HERO_START.c);
+        if (dist === 2) nearCells.push({r, c});
+        else if (dist === 3) midCells.push({r, c});
+        else if (dist >= 4 && dist <= 5) farCells.push({r, c});
+      }
+    }
+    const shuffleArr = (arr) => arr.sort(() => Math.random() - 0.5);
+    shuffleArr(nearCells); shuffleArr(midCells); shuffleArr(farCells);
+
+    const used = new Set();
+    const place = (pool) => {
+      for (const p of pool) {
+        const k = p.r * COLS + p.c;
+        if (!used.has(k)) { used.add(k); return p; }
+      }
+      return null;
+    };
+
+    // 按变体放置敌人
+    const pools = [nearCells, midCells, farCells];
+    typeList.forEach((type, idx) => {
+      const pool = pools[Math.min(idx, 2)];
+      const pos = place(pool) || place(midCells) || place(nearCells);
+      if (pos) {
+        enemies.push({ id: enemyIdCounter++, r: pos.r, c: pos.c, hp: type.baseHp, maxHp: type.baseHp, type: type.name, icon: type.icon, img: type.img, imgMove: type.imgMove, imgAtk: type.imgAtk, imgDead: type.imgDead, imgBomb: type.imgBomb, special: type.special, role: type.role });
+      }
+    });
+  }
+
+  // ── 动画辅助 ──
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function animateLunge(r, c, dr, dc, flip, atkSrc, idleSrc) {
+    return new Promise(resolve => {
+      const pos = getCellCenter(r, c);
+      const sprites = document.getElementById('charLayer').children;
+      let img = null;
+      for (const s of sprites) {
+        if (Math.abs(parseFloat(s.style.left) - pos.x) < 2 && Math.abs(parseFloat(s.style.top) - pos.y) < 2) {
+          img = s.querySelector('img');
+          break;
+        }
+      }
+      if (!img) { resolve(); return; }
+      if (atkSrc) img.src = atkSrc;
+      const sf = flip === 'right' ? 'scaleX(-1)' : 'scaleX(1)';
+      img.style.transition = 'transform 0.12s ease-out';
+      img.style.transform = `${sf} translate(${dc * 50}%, 0)`;
+      setTimeout(() => {
+        img.style.transition = 'transform 0.12s ease-in';
+        img.style.transform = `${sf} translate(0, 0)`;
+        setTimeout(() => { img.style.transition = 'transform 0.15s linear'; if (idleSrc) img.src = idleSrc; resolve(); }, 120);
+      }, 120);
+    });
+  }
+
+  function flashDamage(r, c) {
+    return new Promise(resolve => {
+      const cell = $boardGrid.children[r * COLS + c];
+      if (!cell) { resolve(); return; }
+      cell.classList.add('damage-flash');
+      setTimeout(() => { cell.classList.remove('damage-flash'); resolve(); }, 200);
+    });
+  }
+
+  // ── 敌人 AI ──
+  async function enemyTurn() {
+    const log = [];
+    const hpBefore = hero.hp;
+
+    if (freezeEnemies) {
+      freezeEnemies = false;
+      tokens['冻结']--;
+      log.push('❄️ 冻结令牌生效：敌人本回合无法行动！');
+      return log;
+    }
+
+    function hasLineOfSight(r1, c1, r2, c2) {
+      if (r1 === r2) {
+        const minC = Math.min(c1, c2), maxC = Math.max(c1, c2);
+        for (let c = minC + 1; c < maxC; c++) {
+          if (!map[r1] || !map[r1][c]) return false;
+        }
+        return true;
+      }
+      if (c1 === c2) {
+        const minR = Math.min(r1, r2), maxR = Math.max(r1, r2);
+        for (let r = minR + 1; r < maxR; r++) {
+          if (!map[r] || !map[r][c1]) return false;
+        }
+        return true;
+      }
+      return false;
+    }
+
+    const alive = enemies.filter(e => e.hp > 0);
+    for (let i = 0; i < alive.length; i++) {
+      const e = alive[i];
+      const oldR = e.r, oldC = e.c;
+      const isMage = e.special === 'ranged';
+      const canSnipe = isMage && hasLineOfSight(e.r, e.c, hero.r, hero.c);
+
+      // 移动
+      let moved = false;
+      if (!canSnipe) {
+        const dr = Math.sign(hero.r - e.r);
+        const dc = Math.sign(hero.c - e.c);
+        let nr = e.r, nc = e.c;
+        if (dr !== 0) { nr = e.r + dr; }
+        else if (dc !== 0) { nc = e.c + dc; }
+        const blocked = (nr === hero.r && nc === hero.c) ||
+          !map[nr] || !map[nr][nc] ||
+          enemies.some(o => o !== e && o.hp > 0 && o.r === nr && o.c === nc);
+        if (!blocked && nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+          // 朝向 + 滑动
+          const ncx = getCellCenter(nr, nc).x, ocx = getCellCenter(oldR, oldC).x;
+          if (ncx > ocx) e.facing = 'right'; else if (ncx < ocx) e.facing = 'left';
+          const oldP = getCellCenter(oldR, oldC), newP = getCellCenter(nr, nc);
+          let espr = null;
+          for (const s of document.getElementById('charLayer').children) {
+            if (Math.abs(parseFloat(s.style.left) - oldP.x) < 2 && Math.abs(parseFloat(s.style.top) - oldP.y) < 2) { espr = s; break; }
+          }
+          if (espr) {
+            const im = espr.querySelector('img'); if (im) { im.style.transform = 'scaleX(' + (e.facing === 'right' ? -1 : 1) + ')'; if (e.imgMove) im.src = e.imgMove; }
+            espr.style.transition = 'left 0.28s ease-out, top 0.28s ease-out';
+            espr.style.left = newP.x + 'px'; espr.style.top = newP.y + 'px';
+            await sleep(280); espr.style.transition = '';
+          }
+          e.r = nr; e.c = nc; moved = true;
+          log.push(`👾${e.type} 从 (${oldR},${oldC}) 移动到 (${e.r},${e.c})`);
+        }
+      }
+
+      if (moved) { renderBoard(); await sleep(180); }
+
+      // 攻击
+      let canAttack = false;
+      if (isMage) {
+        canAttack = hasLineOfSight(e.r, e.c, hero.r, hero.c);
+      } else {
+        canAttack = isHexAdjacent(hero.r, hero.c, e.r, e.c);
+      }
+      if (canAttack) {
+        const hcx = getCellCenter(hero.r, hero.c).x, ecx = getCellCenter(e.r, e.c).x;
+        if (hcx > ecx) e.facing = 'right'; else if (hcx < ecx) e.facing = 'left';
+        await animateLunge(e.r, e.c, hero.r - e.r, hero.c - e.c, e.facing, e.imgAtk, e.img);
+        let dmg = e.special === 'boss' ? 2 : 1;
+        if (hero.armor > 0) {
+          const blocked = Math.min(hero.armor, dmg);
+          hero.armor -= blocked;
+          dmg -= blocked;
+          log.push(`🛡️护甲抵挡 ${blocked} 点伤害`);
+        }
+        if (dmg > 0) {
+          hero.hp -= dmg;
+          const rangeNote = (e.special === 'ranged') ? '（🔮直线狙击）' : '';
+          log.push(`⚔️${e.type}${rangeNote}攻击英雄，造成 ${dmg} 点伤害`);
+          // 吸血鬼攻击时回复1HP
+          if (e.special === 'lifesteal' && e.hp < e.maxHp) { e.hp = Math.min(e.maxHp, e.hp + 1); log.push(`🩸${e.type}吸取生命，回复1HP`); }
+        }
+        await flashDamage(hero.r, hero.c);
+      }
+
+      await sleep(250); // 敌人间隔
+    }
+
+    // Boss 召唤：每2回合在随机空格召唤2HP史莱姆
+    const boss = enemies.find(e => e.special === 'boss' && e.hp > 0);
+    if (boss) {
+      chapterState.bossTurnCounter++;
+      if (chapterState.bossTurnCounter % 2 === 0) {
+        // 找 Boss 相邻的空位
+        const adjCells = [];
+        const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+        dirs.forEach(([dr, dc]) => {
+          const nr = boss.r + dr, nc = boss.c + dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS &&
+              map[nr] && map[nr][nc] &&
+              !(nr === hero.r && nc === hero.c) &&
+              !enemies.some(o => o.hp > 0 && o.r === nr && o.c === nc)) {
+            adjCells.push({r: nr, c: nc});
+          }
+        });
+        if (adjCells.length > 0) {
+          const spot = adjCells[Math.floor(Math.random() * adjCells.length)];
+          const slime = { id: enemyIdCounter++, r: spot.r, c: spot.c, hp: 2, maxHp: 2, type: '史莱姆', icon: '🟢', img: 'img/Slime.png', imgMove: 'img/slime_move.png', imgAtk: 'img/slime_attack.png', special: null, role: 'frontline' };
+          enemies.push(slime);
+          log.push('👹 Boss召唤了一只史莱姆！');
+          renderBoard();
+          await sleep(110);
+        }
+      }
+    }
+
+    if (hero.hp < hpBefore) {
+      log.push(`❤️英雄受到 ${hpBefore - hero.hp} 点伤害（剩余 ${hero.hp}/${hero.maxHp}）`);
+    }
+    await processCorpses(log);
+    if (log.length === 0) {
+      log.push('敌人没有行动');
+    }
+    return log;
+  }
+
+  async function processCorpses(logArr) {
+    if (corpses.length === 0) return;
+    renderBoard(); await sleep(200);
+    for (const corpse of [...corpses]) {
+      const $sp = document.getElementById('charLayer');
+      const pos = getCellCenter(corpse.r, corpse.c);
+      const bombEl = document.createElement('div');
+      bombEl.className = 'sprite';
+      bombEl.style.cssText = `position:absolute;left:${pos.x}px;top:${pos.y}px;width:${sprW(1.13)}px;height:${sprH(0.98)}px;transform:translate(-50%,-95%) rotateX(-70deg);z-index:50;`;
+      bombEl.innerHTML = `<img src="${corpse.imgBomb}" style="width:100%;height:100%;object-fit:contain;animation:bombPop 0.4s ease-out" />`;
+      $sp.appendChild(bombEl);
+      await sleep(100);
+      if (isHexAdjacent(hero.r, hero.c, corpse.r, corpse.c)) {
+        let bdmg = 1;
+        if (hero.armor > 0) { const bl = Math.min(hero.armor, bdmg); hero.armor -= bl; bdmg -= bl; if (bl > 0) logArr.push(`🛡️护甲抵挡${bl}点爆炸`); }
+        if (bdmg > 0) { hero.hp -= bdmg; logArr.push(`💥尸体爆炸，对英雄造成${bdmg}伤害`); }
+        await flashDamage(hero.r, hero.c);
+      } else {
+        logArr.push('💥尸体爆炸（未波及英雄）');
+      }
+      bombEl.remove();
+      corpses = corpses.filter(c => c !== corpse);
+    }
+    renderBoard();
+  }
+
+  function resetGame() {
+    totalScore = 0; lastScore = null;
+    round = 1; actionPoints = 0; discardActionsUsed = 0;
+    handPlayed = false; waitingForConfirm = false; history = [];
+    hero = { r: HERO_START.r, c: HERO_START.c, hp: 10, maxHp: 10, armor: 0, facing: 'right', imgIdle: 'img/knight.png', imgMove: 'img/knight_move.png', imgAtk: 'img/knight_attack.png' };
+    tokens = {}; doubleDamage = false; freezeEnemies = false; noCounter = false; extraDiscards = 0; skipEnemyTurn = false; carryOverAP = 0;
+    hideBoard();
+    $btnEndRound.textContent = '✓ 结束回合';
+    $btnEndRound.disabled = false;
+    showScreen('chapter_select');
+  }
+
+  function updateScoreDisplay() {
+    $totalScore.textContent = totalScore;
+  }
+
+  function renderHistory() {
+    $history.innerHTML = history.slice(0, 5).map(e => {
+      const tokenStr = e.token ? ' 🎖️' + TOKEN_INFO[e.token].name : '';
+      return `
+      <div class="entry">
+        <span>回合${e.round}: ${e.cards.map(c => COLOR_SYMBOLS[c.color] + c.number).join(' ')}</span>
+        <span class="muted">+${e.points} → <b>${e.ap}AP</b> ${e.type}${tokenStr}</span>
+      </div>
+    `}).join('');
+  }
+
+  // ═══════════════════════════════════════════
+  // ── 章节系统 ──
+  // ═══════════════════════════════════════════
+
+  function hasBuff(id) { return chapterState.buffs.some(b => b.id === id); }
+  function getTutorialObjective() {
+    const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+    if (!node || node.type !== 'tutorial') { tutorialStep = 0; return null; }
+    // 每个教程节点的多步骤目标
+    const TUTORIAL_STEPS = {
+      t1: [
+        { target:'对子', check:(t,score) => t === '对子', reward:'无影', hint:'第一步：打出一个「对子」\n（2张相同数字的牌，如 3† + 3‡）' },
+        { target:'20+', check:(t,score) => score >= 20, reward:'冻结', hint:'第二步：打出20分以上的任意牌型\n 得分 = 牌面之和 × 牌型倍率\n 点击底部「牌型」查看倍率表\n 点击「换牌」构筑手牌\n 换牌和出牌最多选择5张' },
+      ],
+    };
+    const steps = TUTORIAL_STEPS[node.id];
+    if (!steps) return null;
+    if (tutorialStep >= steps.length) return null; // 全部完成
+    return steps[tutorialStep];
+  }
+
+  function getMaxDiscards() {
+    const obj = getTutorialObjective();
+    if (obj) return Infinity; // 教程关无限换牌
+    return (hasBuff('deep_breath') ? 3 : 2) + extraDiscards;
+  }
+  function getMaxTokens() { return hasBuff('token_cap') ? 6 : 5; }
+
+  // ── 令牌背包 ──
+  function updateTokenBag() {
+    const slots = document.getElementById('tokenSlots');
+    const activeTokens = Object.entries(tokens).filter(([, v]) => v > 0);
+    const total = activeTokens.reduce((s, [,v]) => s + v, 0);
+    const max = getMaxTokens();
+    document.querySelector('.token-bag-title').textContent = `🎒 令牌背包 (${total}/${max})`;
+    if (!activeTokens.length) { slots.innerHTML = '<span style="color:var(--text-dim);font-size:11px">空</span>'; return; }
+    const full = total >= max;
+    slots.innerHTML = activeTokens.map(([k, v]) =>
+      `<span class="token-chip${full ? ' full' : ''}" data-token="${k}" title="点击使用">${TOKEN_INFO[k].icon} ${TOKEN_INFO[k].name} ×${v}</span>`
+    ).join('');
+    // 点击使用令牌
+    slots.querySelectorAll('.token-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const tk = chip.dataset.token;
+        if (tk === '治疗') useHeal();
+        else if (tk === '无影') useShadow();
+        else if (tk === '狂暴') useRage();
+        else if (tk === '冻结') useFreeze();
+        else if (tk === '洞察') useInsight();
+        else if (tk === '坚韧') useArmor();
+        else if (tk === '传奇') useLegend();
+        else if (tk === '重生') useRebirth();
+        updateTokenBag();
+      });
+    });
+  }
+
+  // ── 牌堆弹窗 ──
+  let deckSort = 'num';
+  function showDeck() {
+    document.getElementById('deckCount').textContent = deck.length;
+    // 各数字/花色剩余统计
+    const numCount = {}, colorCount = {};
+    deck.forEach(c => { numCount[c.number] = (numCount[c.number] || 0) + 1; colorCount[c.color] = (colorCount[c.color] || 0) + 1; });
+    const colorIcons = { red: '†', green: '‡', blue: '◊', yellow: '★' };
+    const colorStyles = { red: '#c84040', green: '#4a9a60', blue: '#4a7aaa', yellow: '#9a6ac8' };
+    let statsHTML = '<div style="display:flex;gap:12px;justify-content:center;font-size:10px;font-family:sans-serif;margin-bottom:8px;flex-wrap:wrap">';
+    statsHTML += '<span style="color:var(--text-dim)">数字: ' + [1,2,3,4,5,6,7,8].map(n => `<b style="color:var(--text)">${n}</b>:${numCount[n]||0}`).join(' ') + '</span>';
+    statsHTML += '<span style="color:var(--text-dim)">花色: ' + COLORS.map(c => `<b style="color:${colorStyles[c]}">${colorIcons[c]}</b>:${colorCount[c]||0}`).join(' ') + '</span>';
+    statsHTML += '</div>';
+    const grid = document.getElementById('deckGrid');
+    if (!deck.length) { grid.innerHTML = '<span style="color:var(--text-dim);font-size:11px">牌堆已空</span>'; }
+    else {
+      const sorted = [...deck].sort((a, b) => deckSort === 'num' ? a.number - b.number || COLORS.indexOf(a.color) - COLORS.indexOf(b.color) : COLORS.indexOf(a.color) - COLORS.indexOf(b.color) || a.number - b.number);
+      grid.innerHTML = statsHTML + sorted.map(c => `<div class="deck-card" style="border-color:${['#c84040','#4a7aaa','#4a9a60','#9a6ac8'][COLORS.indexOf(c.color)]}"><div class="dc-suit">${COLOR_SYMBOLS[c.color]}</div>${c.number}</div>`).join('');
+    }
+    document.getElementById('deckOverlay').classList.remove('hidden');
+  }
+  window._deckSort = function(s) { deckSort = s; showDeck(); };
+
+  function showScreen(mode) {
+    gameMode = mode;
+    if (mode !== 'battle') pushNav(mode);
+    updateBackBtn();
+    if (mode === 'battle') switchBGM('battle'); else switchBGM('card');
+    const isMenu = mode === 'menu';
+    const isClass = mode === 'class';
+    const isChSelect = mode === 'chapter_select';
+    const isChapter = mode === 'chapter_map';
+    const isBattle = mode === 'battle';
+    const isReward = mode === 'reward';
+    const isCamp = mode === 'camp';
+    const isVictory = mode === 'victory';
+
+    // 主界面 / 职业选择 / 章节选择
+    document.getElementById('menuScreen').classList.toggle('hidden', !isMenu);
+    document.getElementById('classScreen').classList.toggle('hidden', !isClass);
+    document.getElementById('chapterSelectScreen').classList.toggle('hidden', !isChSelect);
+    // 章节地图
+    document.getElementById('chapterScreen').classList.toggle('hidden', !isChapter);
+    // 奖励
+    document.getElementById('rewardScreen').classList.toggle('hidden', !isReward);
+    // 营地
+    document.getElementById('campScreen').classList.toggle('hidden', !isCamp);
+    // 胜利
+    document.getElementById('victoryOverlay').classList.toggle('hidden', !isVictory);
+    // 战斗 UI
+    document.querySelector('.header').classList.toggle('hidden', !isBattle);
+    document.getElementById('cardStatBar').classList.toggle('hidden', !isBattle);
+    document.getElementById('scoreBanner').classList.toggle('hidden', !isBattle);
+    document.getElementById('handHint').classList.toggle('hidden', !isBattle);
+    document.getElementById('infoBtns').classList.toggle('hidden', !isBattle);
+    document.querySelector('.swap-info').classList.toggle('hidden', !isBattle);
+    document.getElementById('cardsArea').classList.toggle('hidden', !isBattle);
+    document.getElementById('cardButtons').classList.toggle('hidden', !isBattle);
+    document.getElementById('boardContainer').classList.toggle('hidden', !isBattle);
+    document.querySelector('.history-container').classList.toggle('hidden', !isBattle);
+    document.getElementById('btnReset').classList.toggle('hidden', !isBattle);
+    document.getElementById('tokenBag').classList.toggle('hidden', !isBattle);
+    document.querySelector('.sort-btns').classList.toggle('hidden', !isBattle);
+  }
+
+  function renderChapterMap() {
+    const state = chapterState;
+    const currentNode = CHAPTER.nodes.find(n => n.id === state.currentNodeId);
+    const currentIdx = CHAPTER.nodes.indexOf(currentNode);
+
+    // Determine available nodes
+    const availableIds = new Set();
+    if (currentNode.type === 'start' || state.completedNodes.includes(currentNode.id)) {
+      currentNode.next.forEach(id => availableIds.add(id));
+    }
+
+    // Build SVG
+    let svg = `<svg class="map-svg" viewBox="0 0 340 350" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
+
+    // Path lines
+    CHAPTER.nodes.forEach(node => {
+      (node.next || []).forEach(nextId => {
+        const target = CHAPTER.nodes.find(n => n.id === nextId);
+        if (!target) return;
+        const done = state.completedNodes.includes(node.id) && state.completedNodes.includes(nextId);
+        const active = state.completedNodes.includes(node.id) && (nextId === state.currentNodeId || availableIds.has(nextId));
+        const cls = (done || active) ? 'done' : '';
+        svg += `<line class="path-line ${cls}" x1="${node.x}" y1="${node.y}" x2="${target.x}" y2="${target.y}"/>`;
+      });
+    });
+
+    // Nodes
+    CHAPTER.nodes.forEach(node => {
+      const isDone = state.completedNodes.includes(node.id);
+      const isCurrent = node.id === state.currentNodeId;
+      const isAvailable = availableIds.has(node.id) && !isDone;
+      const isLocked = !isDone && !isCurrent && !isAvailable && node.type !== 'start';
+      let cls = isDone ? 'done' : (isCurrent ? 'current' : (isAvailable ? 'available' : 'locked'));
+      if (node.type === 'start' && isDone) cls = 'done';
+      const info = NODE_TYPES[node.type] || { icon:'?', label:node.type };
+      const r = node.type === 'boss' ? 24 : (node.type === 'start' || node.type === 'elite' ? 22 : 20);
+      const fillColor = cls === 'done' ? '#F5E8D0' : (cls === 'locked' ? '#a09070' : '#3A2008');
+      svg += `<g class="node ${cls}" data-node="${node.id}" style="cursor:${cls==='locked'?'default':'pointer'}">`;
+      svg += `<circle class="node-circle" cx="${node.x}" cy="${node.y}" r="${r}" />`;
+      svg += `<text class="node-text" x="${node.x}" y="${node.y + 1}" fill="${fillColor}">${info.icon}</text>`;
+      svg += `<text class="node-label" x="${node.x}" y="${node.y + r + 12}">${info.label}</text>`;
+      svg += `</g>`;
+    });
+
+    svg += `</svg>`;
+    document.getElementById('mapArea').innerHTML = svg;
+
+    // Update status bar
+    document.getElementById('csHp').textContent = state.heroHp + '/' + state.heroMaxHp;
+    document.getElementById('csArmor').textContent = state.heroArmor;
+    document.getElementById('csTokens').textContent = '2';
+    document.getElementById('csBuffs').textContent = state.buffs.length;
+
+    // Update buff list
+    const buffsDiv = document.getElementById('chapterBuffs');
+    if (state.buffs.length > 0) {
+      buffsDiv.innerHTML = '<div class="buffs-title">已获得强化</div>' + state.buffs.map(b =>
+        `<div class="buff-chip"><span class="tag${b.pool==='build'?' build':''}">${b.pool==='combat'?'战斗':'构建'}</span>${b.name} — ${b.desc}</div>`
+      ).join('');
+    } else {
+      buffsDiv.innerHTML = '';
+    }
+
+    // Tooltip and enter button
+    const tooltip = document.getElementById('nodeTooltip');
+    const enterBtn = document.getElementById('enterNodeBtn');
+    tooltip.classList.add('hidden');
+    enterBtn.classList.add('hidden');
+
+    // Node click handlers
+    document.querySelectorAll('#mapArea .node').forEach(el => {
+      el.addEventListener('click', () => {
+        const nodeId = el.dataset.node;
+        const node = CHAPTER.nodes.find(n => n.id === nodeId);
+        if (!node) return;
+        const cls = el.classList.contains('done') ? 'done' : (el.classList.contains('current') ? 'current' : (el.classList.contains('available') ? 'available' : 'locked'));
+        if (cls === 'locked') return;
+
+        const info = NODE_TYPES[node.type] || {};
+        tooltip.textContent = info.label + (cls === 'done' ? ' — 已完成' : (cls === 'current' ? ' — 当前位置' : ' — 可进入'));
+        tooltip.classList.remove('hidden');
+        enterBtn.classList.remove('hidden');
+        enterBtn.dataset.nodeId = nodeId;
+      });
+    });
+  }
+
+  function enterNode(nodeId) {
+    const node = CHAPTER.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+    chapterState.currentNodeId = nodeId;
+
+    switch (node.type) {
+      case 'start':
+        chapterState.completedNodes.push(nodeId);
+        chapterState.currentNodeId = node.next[0]; // auto-advance to fork choice
+        renderChapterMap();
+        break;
+      case 'battle':
+      case 'elite':
+      case 'tutorial':
+        startBattle(node);
+        break;
+      case 'camp':
+        enterCamp();
+        break;
+      case 'boss':
+        startBossBattle();
+        break;
+    }
+  }
+
+  function enterCamp() {
+    showScreen('camp');
+  }
+
+  function saveChapterState() {
+    chapterState.heroHp = hero.hp;
+    chapterState.heroMaxHp = hero.maxHp;
+    chapterState.heroArmor = hero.armor;
+    chapterState.tokens = { ...tokens };
+  }
+
+  function restoreChapterState() {
+    hero.hp = chapterState.heroHp;
+    hero.maxHp = chapterState.heroMaxHp;
+    hero.armor = chapterState.heroArmor;
+    tokens = { ...chapterState.tokens };
+    // Apply build buffs
+    if (hasBuff('med_kit')) { hero.hp = Math.min(hero.maxHp, hero.hp + 2); }
+    if (hasBuff('armor_up')) { hero.armor += 1; }
+    if (hasBuff('token_cap')) { /* token cap increased - checked at grant time */ }
+  }
+
+  function resetChapter() {
+    chapterState = { currentNodeId: 'start', completedNodes: [], heroHp: 10, heroMaxHp: 10, heroArmor: 0, tokens: {}, buffs: [], bossTurnCounter: 0 };
+    tutorialStep = 0;
+    saveChapterState();
+  }
+
+  function resetBattle() {
+    // Soft reset: keep chapter state, regenerate map
+    hero = { r: HERO_START.r, c: HERO_START.c, hp: 10, maxHp: 10, armor: 0, facing: 'right', imgIdle: 'img/knight.png', imgMove: 'img/knight_move.png', imgAtk: 'img/knight_attack.png' };
+    restoreChapterState();
+    generateMap();
+    totalScore = 0; lastScore = null;
+    round = 1; actionPoints = 0; discardActionsUsed = 0;
+    handPlayed = false; waitingForConfirm = false; history = [];
+    doubleDamage = false; freezeEnemies = false; noCounter = false;
+    extraDiscards = 0; skipEnemyTurn = false; carryOverAP = 0;
+    isAnimating = false; playsThisRound = 0; tutorialStep = 0;
+    buildDeck(); deck = shuffle(deck);
+    showScreen('battle');
+    hideBoard();
+    $btnEndRound.textContent = '✓ 结束回合';
+    $btnEndRound.disabled = false;
+    drawHand();
+    renderHistory();
+    updateScoreDisplay();
+    updateCardStats();
+  }
+
+  function startBattle(node) {
+    const isElite = node.type === 'elite';
+    const isTutorial = node.type === 'tutorial';
+    const origGenerateMap = generateMap;
+    if (isTutorial) {
+      const tNum = parseInt(node.id.replace('t','')) || 1;
+      const tConfigs = {
+        1: [{ type:'slime', r:3, c:2, hp:2 }],
+        2: [{ type:'slime', r:2, c:3, hp:3 }, { type:'slime', r:4, c:3, hp:2 }],
+        3: [{ type:'slime', r:3, c:3, hp:3 }, { type:'skeleton', r:3, c:5, hp:3 }],
+      };
+      const cfg = tConfigs[tNum] || tConfigs[1];
+      generateMap = function() {
+        origGenerateMap();
+        if (tNum <= 2) { for (let r = 0; r < ROWS; r++) terrain[r].fill(0); }
+        enemies = cfg.map((e, i) => {
+          const t = ENEMY_TYPES[e.type];
+          return { id: enemyIdCounter++, r: e.r, c: e.c, hp: e.hp, maxHp: e.hp, type: t.name, icon:t.icon, img:t.img, imgMove:t.imgMove, imgAtk:t.imgAtk, imgDead:t.imgDead, imgBomb:t.imgBomb, special:t.special, role:t.role };
+        });
+      };
+    }
+    if (isElite) {
+      // Override enemy count for elite: more enemies
+      generateMap = function() {
+        origGenerateMap.call ? origGenerateMap() : null;
+        // Add one more enemy if possible
+        if (enemies.length < 4) {
+          // Find a free cell away from hero
+          for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+              if (map[r] && map[r][c] && !(r === hero.r && c === hero.c) && !enemies.some(e => e.r === r && e.c === c)) {
+                const dist = Math.abs(r - hero.r) + Math.abs(c - hero.c);
+                if (dist >= 3) {
+                  const type = Math.random() < 0.5 ? ENEMY_TYPES.skeleton : ENEMY_TYPES.mage;
+                  enemies.push({ id: enemyIdCounter++, r, c, hp: type.baseHp + type.hpRange[1], maxHp: type.baseHp + type.hpRange[1], type: type.name, icon: type.icon, img: type.img, imgMove: type.imgMove, imgAtk: type.imgAtk, imgDead: type.imgDead, imgBomb: type.imgBomb, special: type.special, role: type.role });
+                  return;
+                }
+              }
+            }
+          }
+        }
+      };
+    }
+    resetBattle();
+    generateMap = origGenerateMap;
+  }
+
+  function startBossBattle() {
+    resetBattle();
+    // Replace enemies with boss
+    enemies = []; corpses = [];
+    const bossR = HERO_START.r + 1, bossC = HERO_START.c + 2;
+    if (map[bossR] && map[bossR][bossC]) {
+      enemies.push({
+        id: enemyIdCounter++, r: bossR, c: bossC,
+        hp: 12, maxHp: 12, armor: 3,
+        type: '石像鬼队长', icon: '👹', img: 'img/gargoyle.jpg', imgMove: 'img/gargoyle_move.png', imgAtk: 'img/gargoyle_attack.png',
+        special: 'boss', role: 'boss'
+      });
+    }
+    chapterState.bossTurnCounter = 0;
+    renderBoard();
+    updateBoardButtons();
+    $htName.textContent = '👹 Boss 战：石像鬼队长！';
+  }
+
+  function allEnemiesDead() {
+    return enemies.length > 0 && enemies.every(e => e.hp <= 0);
+  }
+
+  function isBossStage() { const n = CHAPTER.nodes.find(x => x.id === chapterState.currentNodeId); return n && n.type === 'boss'; }
+  function bossAlive() { return enemies.some(e => e.special === 'boss' && e.hp > 0); }
+
+  function updateObjectiveUI() {
+    const bar = document.getElementById('objectiveBar');
+    if (!isBossStage()) { bar.classList.add('hidden'); return; }
+    bar.classList.remove('hidden');
+    const b = document.getElementById('objBoss'), x = document.getElementById('objExit');
+    if (!bossAlive()) { b.classList.add('done'); b.textContent = '✅ Boss已击杀'; }
+    else { b.classList.remove('done'); b.textContent = '👹 击杀Boss'; }
+    if (hero.c === 9 && !bossAlive()) { x.classList.add('done'); x.textContent = '✅ 已抵达出口'; }
+    else { x.classList.remove('done'); x.textContent = '🚩 抵达右端出口'; }
+  }
+
+  function checkVictory() {
+    const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+    if (!node) return false;
+
+    if (node.type === 'boss') {
+      // Boss 关：必须击杀 Boss + 抵达右端出口
+      if (bossAlive() || hero.c !== 9) return false;
+      saveChapterState();
+      chapterState.completedNodes.push(node.id);
+      showScreen('victory');
+      return true;
+    }
+
+    // 教程关：直接给令牌奖励
+    if (node.type === 'tutorial') {
+      if (!allEnemiesDead()) return false;
+      const obj = getTutorialObjective();
+      saveChapterState();
+      chapterState.completedNodes.push(node.id);
+      if (obj) {
+        tokens[obj.reward] = (tokens[obj.reward] || 0) + 1;
+        $htName.textContent = '✅ 完成！获得：' + obj.rewardName + '令牌';
+        $htToken.textContent = TOKEN_INFO[obj.reward].icon + ' ' + obj.rewardName;
+        updateTokenBag();
+      }
+      const node2 = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+      const hasNext = node2 && node2.next.length > 0;
+      if (hasNext) {
+        setTimeout(() => {
+          chapterState.currentNodeId = node2.next[0];
+          renderChapterMap();
+          showScreen('chapter_map');
+        }, 1200);
+      } else {
+        // 教程章结束 → 提示进入第一章
+        setTimeout(() => {
+          const sign = document.getElementById('tutorialSign');
+          document.getElementById('tsTitle').textContent = '🏆 试炼完成！';
+          document.getElementById('tsDesc').innerHTML = '你已经掌握了基础规则<br>点击进入「石像鬼之巢」';
+          sign.classList.remove('hidden');
+          setTimeout(() => sign.classList.add('show'), 50);
+          sign.onclick = () => {
+            sign.classList.remove('show'); sign.classList.add('hidden');
+            CHAPTER = CHAPTERS.main;
+            resetChapter();
+            renderChapterMap();
+            showScreen('chapter_map');
+            generateMap();
+          };
+        }, 1000);
+      }
+      return true;
+    }
+    // 普通战斗：全灭敌人
+    if (!allEnemiesDead()) return false;
+    saveChapterState();
+    chapterState.completedNodes.push(node.id);
+    showRewards();
+    return true;
+  }
+
+  function showRewards() {
+    // Pick one from each pool
+    const pick = (pool) => pool[Math.floor(Math.random() * pool.length)];
+    const rewards = [
+      { ...pick(BUFF_POOLS.combat), rtag:'combat', rtagName:'战斗' },
+      { ...pick(BUFF_POOLS.build), rtag:'build', rtagName:'构建' },
+      { ...pick(BUFF_POOLS.random), rtag:'random', rtagName:'随机' },
+    ];
+    // De-duplicate
+    const seen = new Set();
+    const unique = rewards.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return true; });
+    const cardsDiv = document.getElementById('rewardCards');
+    cardsDiv.innerHTML = unique.map((r, i) => `
+      <div class="reward-card" data-idx="${i}">
+        <span class="rtag ${r.rtag}">${r.rtagName}</span>
+        <div class="rname">${r.name}</div>
+        <div class="rdesc">${r.desc}</div>
+      </div>
+    `).join('');
+    // Store rewards for click handler
+    cardsDiv._rewards = unique;
+    showScreen('reward');
+  }
+
+  function selectReward(idx) {
+    const rewards = document.getElementById('rewardCards')._rewards;
+    if (!rewards || idx >= rewards.length) return;
+    const chosen = rewards[idx];
+    chapterState.buffs.push(chosen);
+    // Auto-advance to next node
+    const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+    if (node && node.next.length > 0) {
+      // For fork, let player choose which path was taken
+      chapterState.currentNodeId = node.next[0];
+    }
+    renderChapterMap();
+    showScreen('chapter_map');
+  }
+
+  // ═══════════════════════════════════════════
+
+  // ── 事件绑定 ──
+  document.getElementById('btnPlay').addEventListener('click', playHand);
+  document.getElementById('btnDiscard').addEventListener('click', discardSelected);
+  document.getElementById('btnEndRound').addEventListener('click', async () => { await endRound(); });
+  document.getElementById('btnReset').addEventListener('click', resetGame);
+
+  // 手牌排序（带动画）
+  async function doSort(mode) {
+    if (animatingCards || hand.length < 2) return;
+    handSort = mode;
+    const oldRefs = hand.map((c, i) => ({card: c, idx: i}));
+    sortHand();
+    const offsets = cardPositions();
+    const cards = $cardsArea.querySelectorAll('.card');
+    animatingCards = true;
+    hand.forEach((card, newIdx) => {
+      const old = oldRefs.find(r => r.card === card);
+      if (old && cards[old.idx]) {
+        cards[old.idx].style.transition = 'left 0.2s cubic-bezier(0.4,0,0.2,1)';
+        cards[old.idx].style.left = `calc(50% + ${offsets[newIdx]}px)`;
+        cards[old.idx].style.zIndex = newIdx + 1;
+      }
+    });
+    await sleep(220);
+    renderCards();
+    animatingCards = false;
+    document.getElementById('sortNum').classList.toggle('active', mode === 'num');
+    document.getElementById('sortColor').classList.toggle('active', mode === 'color');
+  }
+  document.getElementById('sortNum').addEventListener('click', () => doSort('num'));
+  document.getElementById('sortColor').addEventListener('click', () => doSort('color'));
+  // 牌堆弹窗
+  document.getElementById('btnDeck').addEventListener('click', showDeck);
+  document.getElementById('btnCloseDeck').addEventListener('click', () => { document.getElementById('deckOverlay').classList.add('hidden'); });
+  document.querySelector('.deck-overlay-bg').addEventListener('click', () => { document.getElementById('deckOverlay').classList.add('hidden'); });
+
+  // 浮动提示
+  let toastTimer = 0;
+  function showToast(msg) {
+    const el = document.getElementById('boardToast');
+    clearTimeout(toastTimer);
+    el.textContent = msg;
+    el.classList.add('show');
+    toastTimer = setTimeout(() => el.classList.remove('show'), 1400);
+  }
+
+  // 棋盘点击：移动或攻击
+  $boardGrid.addEventListener('click', async (e) => {
+    if (isAnimating || waitingForConfirm || hero.hp <= 0) return;
+    const cell = e.target.closest('.board-cell');
+    if (!cell) return;
+    const tr = parseInt(cell.dataset.r), tc = parseInt(cell.dataset.c);
+    if (isNaN(tr) || isNaN(tc)) return;
+    const dr = tr - hero.r, dc = tc - hero.c;
+    const cheb = Math.max(Math.abs(dr), Math.abs(dc));
+    // 只响应 8 格范围内
+    if (cheb !== 1) return;
+    // 攻击
+    const clickedEnemy = enemies.find(e => e.hp > 0 && e.r === tr && e.c === tc);
+    if (clickedEnemy) {
+      if (actionPoints < 2) { showToast('行动点不足，攻击需要 2 AP'); return; }
+      await heroAttack(clickedEnemy);
+      return;
+    }
+    // 移动
+    if (map[tr] && map[tr][tc]) {
+      const moveCost = (terrain[tr] && terrain[tr][tc] === TERRAIN.SWAMP) ? 2 : 1;
+      if (actionPoints < moveCost) { showToast(`行动点不足，移动需要 ${moveCost} AP`); return; }
+      await moveHero(dr, dc);
+      return;
+    }
+  });
+
+  document.getElementById('btnAttack').addEventListener('click', async () => { await heroAttack(); });
+  document.getElementById('btnHeal').addEventListener('click', useHeal);
+  document.getElementById('btnShadow').addEventListener('click', useShadow);
+  document.getElementById('btnRage').addEventListener('click', useRage);
+  document.getElementById('btnFreeze').addEventListener('click', useFreeze);
+  document.getElementById('btnInsight').addEventListener('click', useInsight);
+  document.getElementById('btnArmor').addEventListener('click', useArmor);
+  document.getElementById('btnLegend').addEventListener('click', useLegend);
+  document.getElementById('btnRebirth').addEventListener('click', useRebirth);
+
+  document.addEventListener('keydown', async (e) => {
+    // ── 卡牌阶段快捷键 ──
+    if ($boardContainer.classList.contains('hidden') && !handPlayed) {
+      // 1~5 选中/取消对应位置手牌
+      if (e.key >= '1' && e.key <= '5') {
+        e.preventDefault();
+        const idx = parseInt(e.key) - 1;
+        if (idx < hand.length) toggleCard(idx);
+        return;
+      }
+      // Enter 出牌
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!handPlayed && selected.size > 0) playHand();
+        return;
+      }
+      // R 换牌
+      if (e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        if (selected.size > 0 && discardActionsUsed < MAX_DISCARD_ACTIONS && !handPlayed) {
+          discardSelected();
+        }
+        return;
+      }
+      // Esc 取消所有选中
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (selected.size > 0) {
+          selected.clear();
+          updateHint();
+          renderCards();
+        }
+        return;
+      }
+      return;
+    }
+
+    // ── 棋盘阶段快捷键 ──
+    if ($boardContainer.classList.contains('hidden')) return;
+
+    if (e.key === ' ') {
+      e.preventDefault();
+      await endRound();
+      return;
+    }
+
+    if (waitingForConfirm || hero.hp <= 0) return;
+
+    switch (e.key.toLowerCase()) {
+      case 'w': e.preventDefault(); await moveHero(-1, 0); break;
+      case 's': e.preventDefault(); await moveHero(1, 0); break;
+      case 'a': e.preventDefault(); await moveHero(0, -1); break;
+      case 'd': e.preventDefault(); await moveHero(0, 1); break;
+      case 'j': e.preventDefault(); await heroAttack(); break;
+      case 'h': e.preventDefault();
+        if (tokens['治疗'] > 0 && hero.hp < hero.maxHp) useHeal();
+        else if (tokens['无影'] > 0) useShadow();
+        else if (tokens['狂暴'] > 0) useRage();
+        else if (tokens['冻结'] > 0) useFreeze();
+        else if (tokens['洞察'] > 0) useInsight();
+        else if (tokens['坚韧'] > 0) useArmor();
+        else if (tokens['传奇'] > 0) useLegend();
+        else if (tokens['重生'] > 0) useRebirth();
+        break;
+    }
+  });
+
+  // 牌型参考弹窗
+  document.getElementById('refToggle').addEventListener('click', () => {
+    document.getElementById('refOverlay').classList.remove('hidden');
+  });
+  document.getElementById('btnCloseRef').addEventListener('click', () => {
+    document.getElementById('refOverlay').classList.add('hidden');
+  });
+  document.querySelector('#refOverlay .deck-overlay-bg').addEventListener('click', () => {
+    document.getElementById('refOverlay').classList.add('hidden');
+  });
+
+  // ── 章节事件绑定 ──
+  document.getElementById('enterNodeBtn').addEventListener('click', () => {
+    const nodeId = document.getElementById('enterNodeBtn').dataset.nodeId;
+    if (nodeId) enterNode(nodeId);
+  });
+
+  document.getElementById('rewardCards').addEventListener('click', (e) => {
+    const card = e.target.closest('.reward-card');
+    if (!card) return;
+    const idx = parseInt(card.dataset.idx);
+    if (!isNaN(idx)) selectReward(idx);
+  });
+
+  document.getElementById('btnCampHeal').addEventListener('click', () => {
+    chapterState.heroHp = Math.min(chapterState.heroMaxHp, chapterState.heroHp + 3);
+    const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+    chapterState.completedNodes.push(node.id);
+    if (node && node.next.length > 0) chapterState.currentNodeId = node.next[0];
+    renderChapterMap();
+    showScreen('chapter_map');
+  });
+
+  document.getElementById('btnCampBuff').addEventListener('click', () => {
+    const picked = BUFF_POOLS.combat[Math.floor(Math.random() * BUFF_POOLS.combat.length)];
+    chapterState.buffs.push({ ...picked });
+    const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
+    chapterState.completedNodes.push(node.id);
+    if (node && node.next.length > 0) chapterState.currentNodeId = node.next[0];
+    renderChapterMap();
+    showScreen('chapter_map');
+  });
+
+  document.getElementById('btnVictoryRestart').addEventListener('click', () => {
+    resetChapter();
+    showScreen('chapter_select');
+  });
+
+  // ── 启动 ──
+  navStack = ['menu']; updateBackBtn();
+  showScreen('menu');
+  document.getElementById('btnStart').addEventListener('click', () => { playSFX('pageTurn'); showScreen('class'); });
+  document.getElementById('classKnight').addEventListener('click', () => {
+    playSFX('pageTurn');
+    showScreen('chapter_select');
+  });
+  // 章节选择
+  document.getElementById('chTutorial').addEventListener('click', () => {
+    playSFX('pageTurn');
+    CHAPTER = CHAPTERS.tutorial;
+    resetChapter();
+    renderChapterMap();
+    showScreen('chapter_map');
+    generateMap();
+  });
+  document.getElementById('chMain').addEventListener('click', () => {
+    playSFX('pageTurn');
+    CHAPTER = CHAPTERS.main;
+    resetChapter();
+    renderChapterMap();
+    showScreen('chapter_map');
+    generateMap();
+  });
+  buildDeck(); deck = shuffle(deck);
+})();
+</script>
+</body></html>
