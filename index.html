@@ -1301,7 +1301,9 @@
     const obj = getTutorialObjective();
     const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
     const isTut = node && node.type === 'tutorial';
-    if (obj || isTut) {
+    const signKey = obj ? node.id + '_step' + tutorialStep : node.id;
+    if ((obj || isTut) && !shownSigns[signKey]) {
+      shownSigns[signKey] = true;
       const sign = document.getElementById('tutorialSign');
       document.getElementById('tsTitle').textContent = '新手试炼';
       const tNum = isTut ? parseInt(node.id.replace('t','')) : 0;
@@ -1581,13 +1583,16 @@
         // 教程关弹出令牌说明
         const tnode = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
         if (tnode && tnode.type === 'tutorial') {
-          setTimeout(() => {
-            const sign = document.getElementById('tutorialSign');
-            document.getElementById('tsTitle').textContent = '令牌系统';
-            document.getElementById('tsDesc').innerHTML = '令牌在出牌时获得<br>背包最多存放' + getMaxTokens() + '个令牌<br>点击已有令牌可使用<br>使用后腾出空间才能获得新令牌';
-            sign.classList.remove('hidden');
-            setTimeout(() => sign.classList.add('show'), 50);
-          }, 400);
+          if (!shownSigns['tokenbag']) {
+            shownSigns['tokenbag'] = true;
+            setTimeout(() => {
+              const sign = document.getElementById('tutorialSign');
+              document.getElementById('tsTitle').textContent = '令牌系统';
+              document.getElementById('tsDesc').innerHTML = '令牌在出牌时获得<br>背包最多存放' + getMaxTokens() + '个令牌<br>点击已有令牌可使用<br>使用后腾出空间才能获得新令牌';
+              sign.classList.remove('hidden');
+              setTimeout(() => sign.classList.add('show'), 50);
+            }, 400);
+          }
         }
       } else {
         tokens[result.token] = (tokens[result.token] || 0) + 1;
