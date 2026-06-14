@@ -1131,7 +1131,7 @@
   function sprH(k){ return Math.round(cellH() * k); }
 
   const ENEMY_TYPES = {
-    slime:  { name: '藤蔓怪', icon: '🟢', img: 'img/Slime.png', imgMove: 'img/slime_move.png', imgAtk: 'img/slime_attack.png', baseHp: 3, hpRange: [-1, 1], special: null, role: 'frontline' },
+    slime:  { name: '藤蔓怪', icon: '🟢', img: 'img/slime.png', imgMove: 'img/slime_move.png', imgAtk: 'img/slime_attack.png', baseHp: 3, hpRange: [-1, 1], special: null, role: 'frontline' },
     skeleton: { name: '恶魂', icon: '💀', img: 'img/bone.png', imgMove: 'img/bone_move.png', imgAtk: 'img/bone_attack.png', imgDead: 'img/bone_dead.png', imgBomb: 'img/bone_bomb.png', baseHp: 4, hpRange: [-1, 1], special: 'deathBoom', role: 'elite' },
     mage:   { name: '吸血鬼', icon: '🔮', img: 'img/witcher.png', imgMove: 'img/witcher_move.png', imgAtk: 'img/witcher_attack.png', baseHp: 5, hpRange: [0, 0], special: 'lifesteal', role: 'backline' },
     boss:   { name: '石像鬼队长', icon: '👹', img: 'img/gargoyle.jpg', imgMove: 'img/gargoyle_move.png', imgAtk: 'img/gargoyle_attack.png', baseHp: 12, hpRange: [0, 0], special: 'boss', role: 'boss' },
@@ -2165,7 +2165,7 @@
           let hint = '', title = '敌人图鉴';
           if (ntype === 'tutorial') {
             const tNum = parseInt(node.id.replace('t','')) || 1;
-            if (tNum === 2) hint = '<div style="display:flex;align-items:center;gap:10px"><img src="img/Slime.png" style="width:48px;height:48px;object-fit:contain;flex-shrink:0"><div><b>藤蔓怪</b> HP:3 近战<br>会主动靠近并攻击你<br>点击敌人相邻格子进行攻击</div></div>';
+            if (tNum === 2) hint = '<div style="display:flex;align-items:center;gap:10px"><img src="img/slime.png" style="width:48px;height:48px;object-fit:contain;flex-shrink:0"><div><b>藤蔓怪</b> HP:3 近战<br>会主动靠近并攻击你<br>点击敌人相邻格子进行攻击</div></div>';
             if (tNum === 3) hint = '<div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:4px;flex-wrap:wrap"><span style="font-size:9px;color:#8B7355">普通</span><img src="img/bone.png" style="width:36px;height:36px;object-fit:contain"><span style="font-size:9px;color:#8B7355">尸体</span><img src="img/bone_dead.png" style="width:36px;height:36px;object-fit:contain"><span style="font-size:9px;color:#8B7355">爆炸</span><img src="img/bone_bomb.png" style="width:36px;height:36px;object-fit:contain"></div><b>恶魂</b> HP:4<br>死亡后留下尸体，回合结束时爆炸<br>对相邻单位造成1点伤害';
           }
           if (ntype === 'elite') hint = '<div style="display:flex;align-items:center;gap:10px"><img src="img/witcher.png" style="width:48px;height:48px;object-fit:contain;flex-shrink:0"><div><b>吸血鬼</b> HP:5 近战<br>攻击时吸取生命回复1HP<br>可被反击，需谨慎应对</div></div>';
@@ -2769,7 +2769,7 @@
         });
         if (adjCells.length > 0) {
           const spot = adjCells[Math.floor(Math.random() * adjCells.length)];
-          const slime = { id: enemyIdCounter++, r: spot.r, c: spot.c, hp: 2, maxHp: 2, type: '藤蔓怪', icon: '🟢', img: 'img/Slime.png', imgMove: 'img/slime_move.png', imgAtk: 'img/slime_attack.png', special: null, role: 'frontline' };
+          const slime = { id: enemyIdCounter++, r: spot.r, c: spot.c, hp: 2, maxHp: 2, type: '藤蔓怪', icon: '🟢', img: 'img/slime.png', imgMove: 'img/slime_move.png', imgAtk: 'img/slime_attack.png', special: null, role: 'frontline' };
           enemies.push(slime);
           log.push('👹 Boss召唤了一只藤蔓怪！');
           renderBoard();
@@ -3531,12 +3531,12 @@
   // ── 资源预加载 ──
   const ASSETS = [
     'img/knight.png','img/knight_move.png','img/knight_attack.png',
-    'img/Slime.png','img/slime_move.png','img/slime_attack.png',
+    'img/slime.png','img/slime_move.png','img/slime_attack.png',
     'img/bone.png','img/bone_move.png','img/bone_attack.png','img/bone_dead.png','img/bone_bomb.png',
     'img/witcher.png','img/witcher_move.png','img/witcher_attack.png',
     'img/gargoyle.jpg','img/gargoyle_move.png','img/gargoyle_attack.png',
     'img/swamp.png','img/fire.png','img/ink.png','img/block.png',
-    'img/card.png','img/background.png','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png','img/bg_reward.png','img/bg_victory.png','img/favicon.png','img/reward_card.png',
+    'img/card.png','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png','img/bg_reward.png','img/bg_victory.png','img/favicon.png','img/reward_card.png',
     'img/ranger.png','img/mage.png','img/Berserker.png',
     'img/token_Healing.png','img/token_Insight.png','img/token_Shadowstep.png','img/token_Rage.png',
     'img/token_Freeze.png','img/token_Fortitude.png','img/token_Legend.png','img/token_Rebirth.png',
