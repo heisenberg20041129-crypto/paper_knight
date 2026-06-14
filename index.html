@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Paper Knight - 卡牌战棋游戏</title>
+<link rel="icon" type="image/png" href="img/favicon.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&amp;family=IM+Fell+English&amp;family=Cinzel:wght@400;500;700:wght@400;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
@@ -2945,10 +2946,12 @@
     }
     // 奖励
     document.getElementById('rewardScreen').classList.toggle('hidden', !isReward);
+    if (isReward) document.getElementById('rewardScreen').style.background = 'url(img/bg_reward.png) center/100% 100% no-repeat';
     // 营地
     document.getElementById('campScreen').classList.toggle('hidden', !isCamp);
     // 胜利
     document.getElementById('victoryOverlay').classList.toggle('hidden', !isVictory);
+    if (isVictory) document.querySelector('.victory-dialog').style.background = 'url(img/bg_victory.png) center/100% 100% no-repeat';
     // 战斗 UI
     document.querySelector('.header').classList.toggle('hidden', !isBattle);
     document.getElementById('cardStatBar').classList.toggle('hidden', !isBattle);
@@ -3530,7 +3533,7 @@
     'img/witcher.png','img/witcher_move.png','img/witcher_attack.png',
     'img/gargoyle.jpg','img/gargoyle_move.png','img/gargoyle_attack.png',
     'img/swamp.png','img/fire.png','img/ink.png','img/block.png',
-    'img/card.png','img/background.png','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png',
+    'img/card.png','img/background.png','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png','img/bg_reward.png','img/bg_victory.png','img/favicon.png',
     'img/ranger.png','img/mage.png','img/Berserker.png',
     'img/token_Healing.png','img/token_Insight.png','img/token_Shadowstep.png','img/token_Rage.png',
     'img/token_Freeze.png','img/token_Fortitude.png','img/token_Legend.png','img/token_Rebirth.png',
