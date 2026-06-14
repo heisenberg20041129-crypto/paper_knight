@@ -767,10 +767,10 @@
 
 <!-- 统计条（卡牌阶段可见） -->
 <div class="stat-bar" id="cardStatBar">
-  <div class="stat-chip"><div class="lbl">❤️ HP</div><div class="val red" id="statHp">10/10</div></div>
-  <div class="stat-chip"><div class="lbl">🛡️ 护甲</div><div class="val" id="statArmor">0</div></div>
-  <div class="stat-chip"><div class="lbl">⚔️ 攻击力</div><div class="val gold" id="statSwap">2</div></div>
-  <div class="stat-chip"><div class="lbl">⚡ AP</div><div class="val gold" id="statToken">0</div></div>
+  <div class="stat-chip"><div class="lbl"><img src="img/ui_hp.png" style="width:14px;height:14px;vertical-align:middle"> HP</div><div class="val red" id="statHp">10/10</div></div>
+  <div class="stat-chip"><div class="lbl"><img src="img/ui_shield.png" style="width:14px;height:14px;vertical-align:middle"> 护甲</div><div class="val" id="statArmor">0</div></div>
+  <div class="stat-chip"><div class="lbl"><img src="img/ui_sword.png" style="width:14px;height:14px;vertical-align:middle"> 攻击力</div><div class="val gold" id="statSwap">2</div></div>
+  <div class="stat-chip"><div class="lbl"><img src="img/ui_ap.png" style="width:14px;height:14px;vertical-align:middle"> AP</div><div class="val gold" id="statToken">0</div></div>
 </div>
 
 <!-- 得分横幅 -->
@@ -802,14 +802,14 @@
       <thead><tr><th>牌型</th><th>条件</th><th>倍率</th><th>令牌</th><th>效果</th></tr></thead>
       <tbody>
       <tr><td>单张</td><td>1 张</td><td>×1</td><td>—</td><td>—</td></tr>
-      <tr><td>对子</td><td>2 张同数字</td><td>×1.5</td><td>💨无影</td><td>本回合敌人反击无效</td></tr>
-      <tr><td>同花</td><td>5 张同色</td><td>×1.5</td><td>🔮洞察</td><td>下回合换牌次数增加1次</td></tr>
-      <tr><td>两对</td><td>两对不同对子</td><td>×2</td><td>💚治疗</td><td>回复 1 HP</td></tr>
-              <tr><td>三条</td><td>3 张同数字</td><td>×2.5</td><td>💢狂暴</td><td>下次攻击伤害翻倍</td></tr>
-              <tr><td>葫芦</td><td>三条+一对</td><td>×3</td><td>🛡️坚韧</td><td>+2HP +2护甲</td></tr>
-      <tr><td>顺子</td><td>5 张连续</td><td>×2.5</td><td>❄️冻结</td><td>下回合敌人无法行动</td></tr>
-              <tr><td>四张</td><td>4 张同数字</td><td>×3</td><td>💖重生</td><td>回复全部生命</td></tr>
-              <tr><td>同花顺</td><td>5 张同色连续</td><td>×5</td><td>⚜️传奇</td><td>全场敌人受到3点伤害+跳过敌方回合</td></tr>
+      <tr><td>对子</td><td>2 张同数字</td><td>×1.5</td><td><img src="img/token_Shadowstep.png" style="width:16px;height:16px;vertical-align:middle"> 无影</td><td>本回合敌人反击无效</td></tr>
+      <tr><td>同花</td><td>5 张同色</td><td>×1.5</td><td><img src="img/token_Insight.png" style="width:16px;height:16px;vertical-align:middle"> 洞察</td><td>下回合换牌次数增加1次</td></tr>
+      <tr><td>两对</td><td>两对不同对子</td><td>×2</td><td><img src="img/token_Healing.png" style="width:16px;height:16px;vertical-align:middle"> 治疗</td><td>回复 1 HP</td></tr>
+              <tr><td>三条</td><td>3 张同数字</td><td>×2.5</td><td><img src="img/token_Rage.png" style="width:16px;height:16px;vertical-align:middle"> 狂暴</td><td>下次攻击伤害翻倍</td></tr>
+              <tr><td>葫芦</td><td>三条+一对</td><td>×3</td><td><img src="img/token_Fortitude.png" style="width:16px;height:16px;vertical-align:middle"> 坚韧</td><td>+2HP +2护甲</td></tr>
+      <tr><td>顺子</td><td>5 张连续</td><td>×2.5</td><td><img src="img/token_Freeze.png" style="width:16px;height:16px;vertical-align:middle"> 冻结</td><td>下回合敌人无法行动</td></tr>
+              <tr><td>四张</td><td>4 张同数字</td><td>×3</td><td><img src="img/token_Rebirth.png" style="width:16px;height:16px;vertical-align:middle"> 重生</td><td>回复全部生命</td></tr>
+              <tr><td>同花顺</td><td>5 张同色连续</td><td>×5</td><td><img src="img/token_Legend.png" style="width:16px;height:16px;vertical-align:middle"> 传奇</td><td>全场敌人受到3点伤害+跳过敌方回合</td></tr>
       </tbody>
       </table>
     </div>
@@ -834,12 +834,12 @@
 <!-- 卡牌阶段按钮 -->
 <div class="card-actions" id="cardButtons">
   <button class="act-btn" disabled id="btnDiscard">
-    <span class="aicon">🔄</span>
+    <span class="aicon"><img src="img/ui_ReplaceCard.png" style="width:20px;height:20px;object-fit:contain"></span>
     <div class="albl">换牌</div>
     <div class="asub" id="swapSub"></div>
   </button>
   <button class="act-btn primary" disabled id="btnPlay">
-    <span class="aicon">⚡</span>
+    <span class="aicon"><img src="img/ui_sword.png" style="width:20px;height:20px;object-fit:contain"></span>
     <div class="albl">出牌</div>
     <div class="asub" id="playSub">选择牌型</div>
   </button>
@@ -847,7 +847,7 @@
 
 <!-- 令牌背包 -->
 <div class="token-bag" id="tokenBag">
-  <div class="token-bag-title">🎒 令牌背包</div>
+  <div class="token-bag-title"><img src="img/ui_bag.png" style="width:14px;height:14px;vertical-align:middle"> 令牌背包</div>
   <div class="token-bag-slots" id="tokenSlots"></div>
 </div>
 
@@ -867,10 +867,10 @@
 <!-- 棋盘阶段 -->
 <div class="board-container hidden" id="boardContainer">
   <div class="board-stat-bar">
-    <div class="stat-chip"><div class="lbl">❤️ HP</div><div class="val red" id="heroHP">10/10</div></div>
-    <div class="stat-chip"><div class="lbl">🛡️ 护甲</div><div class="val" id="heroArmor">0</div></div>
-    <div class="stat-chip"><div class="lbl">🎖️ 令牌</div><div class="val gold" id="tokenCount">0/3</div></div>
-    <div class="stat-chip"><div class="lbl">⚡ 行动力</div><div class="val gold" id="boardAP">0</div></div>
+    <div class="stat-chip"><div class="lbl"><img src="img/ui_hp.png" style="width:14px;height:14px;vertical-align:middle"> HP</div><div class="val red" id="heroHP">10/10</div></div>
+    <div class="stat-chip"><div class="lbl"><img src="img/ui_shield.png" style="width:14px;height:14px;vertical-align:middle"> 护甲</div><div class="val" id="heroArmor">0</div></div>
+    <div class="stat-chip"><div class="lbl"><img src="img/ui_sword.png" style="width:14px;height:14px;vertical-align:middle"> 攻击力</div><div class="val gold" id="tokenCount">2</div></div>
+    <div class="stat-chip"><div class="lbl"><img src="img/ui_ap.png" style="width:14px;height:14px;vertical-align:middle"> 行动力</div><div class="val gold" id="boardAP">0</div></div>
   </div>
   <div class="objective-bar hidden" id="objectiveBar"><div class="obj" id="objBoss">👹 击杀Boss</div><div class="obj" id="objExit">🚩 抵达右端出口</div></div>
   <div class="board-log" id="boardLog"></div>
@@ -880,14 +880,14 @@
   <div class="section-lbl" style="text-align:center">点击周围格子移动或攻击</div>
   <div class="action-btns">
     <button class="board-act-btn" id="btnAttack" disabled><span class="aicon">⚔️</span><span class="albl">攻击</span><span class="acost">2 AP · 2伤</span></button>
-    <button class="board-act-btn hidden" id="btnHeal"><span class="aicon">💚</span><span class="albl">治疗</span><span class="acost">血量回复1点</span></button>
-    <button class="board-act-btn hidden" id="btnShadow"><span class="aicon">💨</span><span class="albl">无影</span><span class="acost">敌人反击无效</span></button>
-    <button class="board-act-btn hidden" id="btnRage"><span class="aicon">💢</span><span class="albl">狂暴</span><span class="acost">攻击伤害翻倍</span></button>
-    <button class="board-act-btn hidden" id="btnFreeze"><span class="aicon">❄️</span><span class="albl">冻结</span><span class="acost">敌人的回合被跳过</span></button>
-    <button class="board-act-btn hidden" id="btnInsight"><span class="aicon">🔮</span><span class="albl">洞察</span><span class="acost">换牌次数增加1次</span></button>
-    <button class="board-act-btn hidden" id="btnArmor"><span class="aicon">🛡️</span><span class="albl">坚韧</span><span class="acost">+回复两点血量并增加2点护盾值</span></button>
-    <button class="board-act-btn hidden" id="btnLegend"><span class="aicon">⚜️</span><span class="albl">传奇</span><span class="acost">全场敌人受到3点伤害</span></button>
-    <button class="board-act-btn hidden" id="btnRebirth"><span class="aicon">💖</span><span class="albl">重生</span><span class="acost">生命状态回满</span></button>
+    <button class="board-act-btn hidden" id="btnHeal"><span class="aicon"><img src="img/token_Healing.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">治疗</span><span class="acost">血量回复1点</span></button>
+    <button class="board-act-btn hidden" id="btnShadow"><span class="aicon"><img src="img/token_Shadowstep.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">无影</span><span class="acost">敌人反击无效</span></button>
+    <button class="board-act-btn hidden" id="btnRage"><span class="aicon"><img src="img/token_Rage.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">狂暴</span><span class="acost">攻击伤害翻倍</span></button>
+    <button class="board-act-btn hidden" id="btnFreeze"><span class="aicon"><img src="img/token_Freeze.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">冻结</span><span class="acost">敌人的回合被跳过</span></button>
+    <button class="board-act-btn hidden" id="btnInsight"><span class="aicon"><img src="img/token_Insight.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">洞察</span><span class="acost">换牌次数增加1次</span></button>
+    <button class="board-act-btn hidden" id="btnArmor"><span class="aicon"><img src="img/token_Fortitude.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">坚韧</span><span class="acost">+回复两点血量并增加2点护盾值</span></button>
+    <button class="board-act-btn hidden" id="btnLegend"><span class="aicon"><img src="img/token_Legend.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">传奇</span><span class="acost">全场敌人受到3点伤害</span></button>
+    <button class="board-act-btn hidden" id="btnRebirth"><span class="aicon"><img src="img/token_Rebirth.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">重生</span><span class="acost">生命状态回满</span></button>
   </div>
   <button class="confirm-btn" id="btnEndRound">✓ 确认，结束回合</button>
   <div class="board-toast" id="boardToast"></div>
@@ -898,8 +898,8 @@
   <span class="material-symbols-outlined" style="font-size:14px">refresh</span> 重置游戏
 </button>
 <div class="info-btns" id="infoBtns" style="display:flex;gap:4px;flex-shrink:0;margin:2px 0">
-  <button id="btnDeck" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif">📋 牌堆</button>
-  <button id="refToggle" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif">📖 牌型</button>
+  <button id="btnDeck" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif"><img src="img/ui_bag.png" style="width:14px;height:14px;vertical-align:middle"> 牌堆</button>
+  <button id="refToggle" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif"><img src="img/ui_CardType.png" style="width:14px;height:14px;vertical-align:middle"> 牌型</button>
 </div>
 
 <!-- 历史记录 -->
@@ -946,11 +946,11 @@
 <div class="chapter-select-screen hidden" id="chapterSelectScreen">
   <div class="cstitle">选择章节</div>
   <div class="chapter-card" id="chTutorial">
-    <div class="cname">📖 新手试炼</div>
+    <div class="cname">新手试炼</div>
     <div class="cdetail">3 场简单战斗 · 熟悉规则</div>
   </div>
   <div class="chapter-card" id="chMain">
-    <div class="cname">👹 石像鬼之巢</div>
+    <div class="cname">石像鬼之巢</div>
     <div class="cdetail">完整冒险 · Boss 战</div>
   </div>
 </div>
@@ -1558,6 +1558,11 @@
 
   function playHand() {
     if (selected.size === 0 || handPlayed) return;
+    // 令牌满时必须先消耗
+    if (getActiveTokenCount() >= getMaxTokens()) {
+      $htName.textContent = '⚠️ 令牌背包已满，请先使用令牌';
+      return;
+    }
 
     const result = calculateScore();
     // 教程目标校验
@@ -1848,7 +1853,7 @@
   function renderBoard() {
     $heroHP.textContent = hero.hp + '/' + hero.maxHp;
     $heroArmor.textContent = hero.armor;
-    document.getElementById('tokenCount').textContent = getActiveTokenCount() + '/' + getMaxTokens();
+    document.getElementById('tokenCount').textContent = '2';
     $boardAP.textContent = actionPoints;
 
     prevHero = { r: hero.r, c: hero.c };
@@ -2880,7 +2885,7 @@
     const activeTokens = Object.entries(tokens).filter(([, v]) => v > 0);
     const total = activeTokens.reduce((s, [,v]) => s + v, 0);
     const max = getMaxTokens();
-    document.querySelector('.token-bag-title').textContent = `🎒 令牌背包 (${total}/${max})`;
+    document.querySelector('.token-bag-title').innerHTML = `<img src="img/ui_bag.png" style="width:14px;height:14px;vertical-align:middle"> 令牌背包 (${total}/${max})`;
     if (!activeTokens.length) { slots.innerHTML = '<span style="color:var(--text-dim);font-size:11px">空</span>'; return; }
     const full = total >= max;
     slots.innerHTML = activeTokens.map(([k, v]) =>
@@ -3545,6 +3550,7 @@
     'img/ranger.png','img/mage.png','img/Berserker.png',
     'img/token_Healing.png','img/token_Insight.png','img/token_Shadowstep.png','img/token_Rage.png',
     'img/token_Freeze.png','img/token_Fortitude.png','img/token_Legend.png','img/token_Rebirth.png',
+    'img/ui_hp.png','img/ui_shield.png','img/ui_sword.png','img/ui_ap.png','img/ui_ReplaceCard.png','img/ui_CardType.png','img/ui_bag.png',
   ];
   let loadedCount = 0;
   function updateLoader() {
