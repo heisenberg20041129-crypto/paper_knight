@@ -690,10 +690,11 @@
   /* ── 奖励界面 ── */
   .reward-screen { padding: 8px 0; height: 100%; background-size: 100% 100%; }
   .reward-header { text-align: center; font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 16px; }
-  .reward-cards { display: flex; flex-direction: row; gap: 8px; justify-content: center; }
-  .reward-card { flex: 1; }
-  .reward-card { background: var(--parchment); border: 2px solid var(--border); border-radius: 8px; padding: 14px 12px; cursor: pointer; transition: all 0.15s; }
-  .reward-card:hover { border-color: var(--accent); background: #F5E8D0; transform: translateY(-2px); box-shadow: 3px 5px 0 rgba(0,0,0,0.15); }
+  .reward-cards { display: flex; flex-direction: row; gap: 6px; justify-content: center; }
+  .reward-card { flex: 1; max-width: 22%; background: var(--parchment); border: 2px solid var(--border); border-radius: 8px; padding: 150px 8px; cursor: pointer; transition: all 0.15s; transform: translateY(30%); }
+  .reward-card:first-child { transform: translateX(-10%) translateY(30%); }
+  .reward-card:last-child { transform: translateX(10%) translateY(30%); }
+  .reward-card:hover { border-color: var(--accent); background: #F5E8D0; }
   .reward-card .rtag { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 2px; color: #F5E8D0; font-family: serif; margin-bottom: 4px; }
   .reward-card .rtag.combat { background: #8B1A1A; }
   .reward-card .rtag.build { background: #5A7A8E; }
@@ -702,11 +703,11 @@
   .reward-card .rdesc { font-size: 11px; color: var(--text-dim); font-family: sans-serif; }
 
   /* ── 营地界面 ── */
-  .camp-screen { text-align: center; padding: 20px 0; }
+  .camp-screen { text-align: center; padding: 20px 0; height: 100%; display: flex; flex-direction: column; }
   .camp-header { font-size: 28px; margin-bottom: 4px; }
-  .camp-desc { font-size: 12px; color: var(--text-dim); font-family: sans-serif; margin-bottom: 20px; }
-  .camp-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .camp-btn { background: linear-gradient(180deg, #D4B896 0%, #B89060 100%); border: 2px solid #8B6020; border-radius: 3px; padding: 14px 8px; cursor: pointer; font-size: 14px; color: var(--text); font-family: serif; box-shadow: 2px 3px 0 rgba(0,0,0,0.2); }
+  .camp-desc { font-size: 12px; color: var(--text-dim); font-family: serif; margin-bottom: 16px; }
+  .camp-options { display: flex; flex-direction: row; gap: 12px; justify-content: center; flex: 1; }
+  .camp-btn { flex: 1; max-width: 22%; background: linear-gradient(180deg, #D4B896 0%, #B89060 100%); border: 2px solid #8B6020; border-radius: 8px; padding: 20px 10px; cursor: pointer; font-size: 16px; color: var(--text); font-family: serif; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; }
   .camp-btn:hover { border-color: #6B4010; background: linear-gradient(180deg, #E0C8A0 0%, #C9A070 100%); }
   .camp-btn small { display: block; font-size: 10px; color: var(--text-dim); font-family: serif; margin-top: 3px; }
 
@@ -980,7 +981,7 @@
 
 <!-- 营地界面 -->
 <div class="camp-screen hidden" id="campScreen">
-  <div class="camp-header"><img src="img/camp.png" style="width:64px;height:64px;object-fit:contain;display:block;margin:0 auto 4px">营地</div>
+  <div class="camp-header">营地</div>
   <div class="camp-desc">在篝火旁稍作休整</div>
   <div class="camp-options">
     <button class="camp-btn" id="btnCampHeal">休息<br><small>回复 3 点生命</small></button>
@@ -2302,7 +2303,7 @@
     if (actionPoints < cost) return;
 
     let dmg = 2;
-    if (doubleDamage) { dmg = 4; doubleDamage = false; tokens['狂暴']--; addLog('💢 狂暴令牌：攻击伤害翻倍！'); }
+    if (doubleDamage) { dmg = 4; doubleDamage = false; addLog('💢 狂暴令牌：攻击伤害翻倍！'); }
     if (hasBuff('rage_plus') && dmg >= 4) { dmg += 1; addLog('🔥 怒火强化：伤害 +1'); }
 
     // Boss 护甲吸收
@@ -2656,7 +2657,6 @@
 
     if (freezeEnemies) {
       freezeEnemies = false;
-      tokens['冻结']--;
       log.push('❄️ 冻结令牌生效：敌人本回合无法行动！');
       return log;
     }
@@ -3053,7 +3053,7 @@
         const node = CHAPTER.nodes.find(n => n.id === nodeId);
         if (!node) return;
         const cls = el.classList.contains('done') ? 'done' : (el.classList.contains('current') ? 'current' : (el.classList.contains('available') ? 'available' : 'locked'));
-        if (cls === 'locked') return;
+        if (cls === 'locked' || cls === 'done') return;
 
         const info = NODE_TYPES[node.type] || {};
         tooltip.textContent = info.label + (cls === 'done' ? ' — 已完成' : (cls === 'current' ? ' — 当前位置' : ' — 可进入'));
@@ -3289,18 +3289,19 @@
   }
 
   function showRewards() {
-    // Pick one from each pool
+    // 必定三个不重复选项
     const pick = (pool) => pool[Math.floor(Math.random() * pool.length)];
+    const c = pick(BUFF_POOLS.combat), b = pick(BUFF_POOLS.build);
+    const used = new Set([c.id, b.id]);
+    const randomPool = BUFF_POOLS.random.filter(r => !used.has(r.id));
+    const rnd = randomPool[Math.floor(Math.random() * randomPool.length)];
     const rewards = [
-      { ...pick(BUFF_POOLS.combat), rtag:'combat', rtagName:'战斗' },
-      { ...pick(BUFF_POOLS.build), rtag:'build', rtagName:'构建' },
-      { ...pick(BUFF_POOLS.random), rtag:'random', rtagName:'随机' },
+      { ...c, rtag:'combat', rtagName:'战斗' },
+      { ...b, rtag:'build', rtagName:'构建' },
+      { ...rnd, rtag:'random', rtagName:'随机' },
     ];
-    // De-duplicate
-    const seen = new Set();
-    const unique = rewards.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return true; });
     const cardsDiv = document.getElementById('rewardCards');
-    cardsDiv.innerHTML = unique.map((r, i) => `
+    cardsDiv.innerHTML = rewards.map((r, i) => `
       <div class="reward-card" data-idx="${i}">
         <span class="rtag ${r.rtag}">${r.rtagName}</span>
         <div class="rname">${r.name}</div>
@@ -3308,7 +3309,7 @@
       </div>
     `).join('');
     // Store rewards for click handler
-    cardsDiv._rewards = unique;
+    cardsDiv._rewards = rewards;
     showScreen('reward');
   }
 
@@ -3535,7 +3536,7 @@
     'img/witcher.png','img/witcher_move.png','img/witcher_attack.png',
     'img/gargoyle.jpg','img/gargoyle_move.png','img/gargoyle_attack.png',
     'img/swamp.png','img/fire.png','img/ink.png','img/block.png',
-    'img/card.png','img/background.png','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png','img/bg_reward.png','img/bg_victory.png','img/favicon.png',
+    'img/card.png','img/background.png','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png','img/bg_reward.png','img/bg_victory.png','img/favicon.png','img/reward_card.png',
     'img/ranger.png','img/mage.png','img/Berserker.png',
     'img/token_Healing.png','img/token_Insight.png','img/token_Shadowstep.png','img/token_Rage.png',
     'img/token_Freeze.png','img/token_Fortitude.png','img/token_Legend.png','img/token_Rebirth.png',
