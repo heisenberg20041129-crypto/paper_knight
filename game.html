@@ -552,33 +552,6 @@
     .score-banner .score-main { font-size: 26px; }
   }
 
-  /* ── 加载页面 ── */
-  .loading-screen {
-    position: fixed; inset: 0; z-index: 100000;
-    background: #2A1805;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .loading-screen.hidden { display: none; }
-  .loading-card {
-    text-align: center; color: #C9A87A;
-  }
-  .loading-title {
-    font-family: 'IM Fell English', serif; font-size: 2rem;
-    color: #F5E8D0; margin-bottom: 20px; letter-spacing: 0.08em;
-  }
-  .loading-bar {
-    width: 240px; height: 6px; background: rgba(200,160,100,0.2);
-    border-radius: 3px; margin: 0 auto 10px; overflow: hidden;
-  }
-  .loading-fill {
-    height: 100%; width: 0%;
-    background: linear-gradient(90deg, #A0724A, #C9A87A);
-    border-radius: 3px; transition: width 0.3s;
-  }
-  .loading-text {
-    font-size: 11px; color: #8B7355; font-family: serif;
-  }
-
   /* ── 主界面：骑士图鉴封面 ── */
   .menu-screen {
     display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
@@ -743,15 +716,6 @@
 </style>
 </head>
 <body>
-<!-- 加载页面 -->
-<div class="loading-screen" id="loadingScreen">
-  <div class="loading-card">
-    <div class="loading-title">Paper Knight</div>
-    <div class="loading-bar"><div class="loading-fill" id="loadingFill"></div></div>
-    <div class="loading-text" id="loadingText">加载中…</div>
-  </div>
-</div>
-
 <button class="back-btn" id="backBtn" title="返回">◂</button>
 <button class="vol-btn" id="volBtn" title="BGM音量">🔊</button>
 <div class="container">
@@ -3493,40 +3457,9 @@
     showScreen('chapter_select');
   });
 
-  // ── 资源预加载 ──
-  const ASSETS = [
-    'img/knight.png','img/knight_move.png','img/knight_attack.png',
-    'img/Slime.png','img/slime_move.png','img/slime_attack.png',
-    'img/bone.png','img/bone_move.png','img/bone_attack.png','img/bone_dead.png','img/bone_bomb.png',
-    'img/witcher.png','img/witcher_move.png','img/witcher_attack.png',
-    'img/gargoyle.jpg','img/gargoyle_move.png','img/gargoyle_attack.png',
-    'img/swamp.png','img/fire.png','img/ink.png','img/block.png',
-    'img/card.png','img/background.png',
-    'img/ranger.png','img/mage.png','img/Berserker.png',
-  ];
-  let loadedCount = 0;
-  function updateLoader() {
-    loadedCount++;
-    const pct = Math.round(loadedCount / ASSETS.length * 100);
-    document.getElementById('loadingFill').style.width = pct + '%';
-    document.getElementById('loadingText').textContent = '加载中… ' + pct + '%';
-    if (loadedCount >= ASSETS.length) {
-      setTimeout(() => {
-        document.getElementById('loadingScreen').classList.add('hidden');
-        // ── 启动 ──
-        navStack = ['menu']; updateBackBtn();
-        showScreen('menu');
-      }, 400);
-    }
-  }
-  ASSETS.forEach(src => {
-    const img = new Image();
-    img.onload = updateLoader;
-    img.onerror = updateLoader;
-    img.src = src;
-  });
-
-  // 事件绑定（在预加载完成后触发）
+  // ── 启动 ──
+  navStack = ['menu']; updateBackBtn();
+  showScreen('menu');
   document.getElementById('btnStart').addEventListener('click', () => { playSFX('pageTurn'); showScreen('class'); });
   document.getElementById('classKnight').addEventListener('click', () => {
     playSFX('pageTurn');
