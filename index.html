@@ -78,9 +78,9 @@
     flex-direction: column;
     overflow: hidden;
     background:
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      url('img/bg.jpg') center/cover no-repeat,
       linear-gradient(180deg, #F0E8D0 0%, #E8DCC0 100%);
-    background-blend-mode: overlay;
+    background-blend-mode: multiply;
     padding: 8px 10px 8px;
     position: relative;
     border-radius: 2px 16px 3px 12px / 4px 18px 2px 10px;
@@ -136,7 +136,7 @@
 
   /* ── 得分横幅 ── */
   .score-banner {
-    background: linear-gradient(180deg, rgba(220,200,160,0.5) 0%, rgba(180,150,100,0.3) 100%);
+    background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, rgba(220,200,160,0.5) 0%, rgba(180,150,100,0.3) 100%);
     border: 1px solid rgba(120,80,30,0.25); border-radius: 3px;
     padding: 6px 10px; margin-bottom: 4px;
     display: flex; align-items: center; justify-content: space-between;
@@ -167,8 +167,8 @@
   /* ── 换牌信息 ── */
   .swap-info { font-size: 10px; color: var(--text-dim); font-family: sans-serif; text-align: center; margin-bottom: 2px; flex-shrink: 0; }
   .sort-btns { display: flex; gap: 4px; justify-content: center; margin-bottom: 4px; flex-shrink: 0; }
-  .sort-btn { font-size: 10px; padding: 2px 10px; border: 1px solid rgba(120,80,30,0.4); border-radius: 10px; background: linear-gradient(180deg, rgba(220,200,160,0.5) 0%, rgba(180,150,100,0.3) 100%); color: var(--text-dim); cursor: pointer; font-family: serif; }
-  .sort-btn.active { background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); color: #F5E8D0; border-color: #4A2808; }
+  .sort-btn { font-size: 10px; padding: 2px 10px; border: none; border-radius: 10px; background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, rgba(220,200,160,0.5) 0%, rgba(180,150,100,0.3) 100%); color: var(--text-dim); cursor: pointer; font-family: serif; }
+  .sort-btn.active { background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #A0724A 0%, #6B4010 100%); color: #F5E8D0; border-color: #4A2808; }
   .swap-info span { font-weight: 500; color: var(--text); }
 
   /* ── 牌型参考表 ── */
@@ -220,7 +220,7 @@
     display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 4px; flex-shrink: 0;
   }
   .act-btn {
-    background: linear-gradient(180deg, #D4B896 0%, #B89060 100%);
+    background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #D4B896 0%, #B89060 100%);
     border: 2px solid #8B6020; border-radius: 3px;
     padding: 8px 6px; text-align: center; cursor: pointer;
     font-family: serif; font-size: 11px; box-shadow: 1px 2px 0 rgba(0,0,0,0.2);
@@ -228,7 +228,7 @@
   .act-btn .aicon { font-size: 16px; color: var(--text); display: block; margin-bottom: 2px; }
   .act-btn .albl { font-size: 11px; color: var(--text); font-weight: 500; }
   .act-btn .asub { font-size: 9px; color: var(--text-dim); }
-  .act-btn.primary { background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border-color: #4A2808; box-shadow: 2px 3px 0 #3A2008; }
+  .act-btn.primary { background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border-color: #4A2808; box-shadow: 2px 3px 0 #3A2008; }
   .act-btn.primary .aicon, .act-btn.primary .albl { color: #F5E8D0; }
   .act-btn.primary .asub { color: #C9A07A; }
   .act-btn:disabled { opacity: 0.35; cursor: not-allowed; }
@@ -255,7 +255,7 @@
   /* ── 重置按钮 ── */
   .btn-reset {
     width: 100%; margin-top: 4px; height: 28px; font-size: 0.65rem; flex-shrink: 0;
-    background: linear-gradient(180deg, #C9A87A 0%, #A07848 100%);
+    background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #C9A87A 0%, #A07848 100%);
     border: 2px solid #6B4010; border-radius: 3px; cursor: pointer; color: #F5E8D0;
     font-family: serif; display: flex; align-items: center;
     justify-content: center; gap: 4px; text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
@@ -478,7 +478,7 @@
   .token-bag { background: linear-gradient(180deg, rgba(200,180,150,0.5) 0%, rgba(160,140,110,0.3) 100%); border: 1px solid rgba(120,80,30,0.25); border-radius: 3px; padding: 6px 8px; margin: 4px 0; box-shadow: inset 0 1px 3px rgba(255,255,255,0.2); }
   .token-bag-title { font-size: 9px; color: var(--text-dim); font-family: serif; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
   .token-bag-slots { display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; align-items: center; }
-  .token-chip { background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); color: #F5E8D0; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-family: serif; display: flex; align-items: center; gap: 4px; cursor: pointer; border: 1px solid #4A2808; box-shadow: 1px 1px 0 rgba(0,0,0,0.3); }
+  .token-chip { background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #A0724A 0%, #6B4010 100%); color: #F5E8D0; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-family: serif; display: flex; align-items: center; gap: 4px; cursor: pointer; border: none; box-shadow: 1px 1px 0 rgba(0,0,0,0.3); }
   .token-chip.full { background: linear-gradient(180deg, #8B4A3A 0%, #6B2010 100%); }
 
   /* 牌堆弹窗 */
@@ -492,7 +492,7 @@
   .deck-grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 12px; }
   .deck-card { width: 36px; height: 52px; border-radius: 3px; border: 2px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: var(--text); background: var(--cell-open); font-family: 'Cinzel', serif; }
   .deck-card .dc-suit { font-size: 7px; color: var(--text-dim); font-family: sans-serif; }
-  .deck-close-btn { width: 100%; padding: 6px; border: 2px solid #6B4010; border-radius: 3px; background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); cursor: pointer; font-size: 12px; color: #F5E8D0; font-family: serif; box-shadow: 1px 2px 0 #3A2008; }
+  .deck-close-btn { width: 100%; padding: 6px; border: none; border-radius: 3px; background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #A0724A 0%, #6B4010 100%); cursor: pointer; font-size: 12px; color: #F5E8D0; font-family: serif; box-shadow: 1px 2px 0 #3A2008; }
 
   .section-lbl {
     font-size: 10px; color: var(--text-dim); font-family: sans-serif;
@@ -523,7 +523,7 @@
     margin-bottom: 4px; position: relative; z-index: 2; flex-shrink: 0;
   }
   .board-act-btn {
-    background: linear-gradient(180deg, #D4B896 0%, #B89060 100%);
+    background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #D4B896 0%, #B89060 100%);
     border: 2px solid #8B6020; border-radius: 3px;
     padding: 6px 3px; text-align: center; cursor: pointer;
     font-family: serif; color: var(--text); font-size: 9px;
@@ -537,7 +537,7 @@
 
   .confirm-btn {
     width: 100%;
-    background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%);
+    background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #A0724A 0%, #6B4010 100%);
     border: 3px solid #4A2808; border-radius: 3px; padding: 8px;
     color: #F5E8D0; font-size: 14px; font-family: 'Cinzel', serif;
     cursor: pointer; display: flex; align-items: center;
@@ -601,7 +601,7 @@
   .menu-btn {
     padding: 10px 36px;
     border: 3px solid #6B4010; border-radius: 4px;
-    background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%);
+    background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #A0724A 0%, #6B4010 100%);
     color: #F5E8D0; font-size: 15px; font-family: 'Cinzel', serif; cursor: pointer;
     letter-spacing: 0.06em; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
     box-shadow: 2px 3px 0 #3A2008, 0 0 12px rgba(0,0,0,0.3);
@@ -678,7 +678,7 @@
   .node-label { font-size: 10px; font-family: sans-serif; text-anchor: middle; fill: var(--text-dim); pointer-events: none; }
 
   .node-tooltip { background: #3A2008; color: #F5E8D0; font-size: 11px; font-family: sans-serif; padding: 5px 8px; border-radius: 4px; text-align: center; margin-top: 8px; }
-  .enter-btn { width: 100%; background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border: 2px solid #4A2808; border-radius: 3px; padding: 10px; color: #F5E8D0; font-size: 14px; font-family: 'Cinzel', serif; cursor: pointer; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 2px 3px 0 #3A2008; text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
+  .enter-btn { width: 100%; background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border: none; border-radius: 3px; padding: 10px; color: #F5E8D0; font-size: 14px; font-family: 'Cinzel', serif; cursor: pointer; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 2px 3px 0 #3A2008; text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
   .enter-btn:active { transform: translateY(2px); box-shadow: none; }
 
   .chapter-buffs { margin-top: 12px; }
@@ -707,7 +707,7 @@
   .camp-header { font-size: 28px; margin-bottom: 4px; }
   .camp-desc { font-size: 12px; color: var(--text-dim); font-family: serif; margin-bottom: 16px; }
   .camp-options { display: flex; flex-direction: row; gap: 12px; justify-content: center; flex: 1; }
-  .camp-btn { flex: 1; max-width: 22%; background: linear-gradient(180deg, #D4B896 0%, #B89060 100%); border: 2px solid #8B6020; border-radius: 8px; padding: 20px 10px; cursor: pointer; font-size: 16px; color: var(--text); font-family: serif; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; }
+  .camp-btn { flex: 1; max-width: 22%; background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #D4B896 0%, #B89060 100%); border: none; border-radius: 8px; padding: 20px 10px; cursor: pointer; font-size: 16px; color: var(--text); font-family: serif; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; }
   .camp-btn:hover { border-color: #6B4010; background: linear-gradient(180deg, #E0C8A0 0%, #C9A070 100%); }
   .camp-btn small { display: block; font-size: 10px; color: var(--text-dim); font-family: serif; margin-top: 3px; }
 
@@ -718,7 +718,7 @@
   .victory-icon { font-size: 48px; margin-bottom: 8px; }
   .victory-title { font-size: 22px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
   .victory-desc { font-size: 12px; color: var(--text-dim); font-family: sans-serif; margin-bottom: 20px; }
-  .victory-btn { background: linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border: 2px solid #4A2808; border-radius: 3px; padding: 10px 30px; color: #F5E8D0; font-size: 14px; font-family: 'Cinzel', serif; cursor: pointer; box-shadow: 2px 3px 0 #3A2008; text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
+  .victory-btn { background: url('img/ui_button.png') center/100% 100% no-repeat, linear-gradient(180deg, #A0724A 0%, #6B4010 100%); border: none; border-radius: 3px; padding: 10px 30px; color: #F5E8D0; font-size: 14px; font-family: 'Cinzel', serif; cursor: pointer; box-shadow: 2px 3px 0 #3A2008; text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
   .victory-btn:active { transform: translateY(2px); box-shadow: none; }
 
   /* BGM 音量按钮 */
@@ -839,7 +839,7 @@
     <div class="asub" id="swapSub"></div>
   </button>
   <button class="act-btn primary" disabled id="btnPlay">
-    <span class="aicon"><img src="img/ui_sword.png" style="width:20px;height:20px;object-fit:contain"></span>
+    <span class="aicon"><img src="img/ui_PlayCard.png" style="width:20px;height:20px;object-fit:contain"></span>
     <div class="albl">出牌</div>
     <div class="asub" id="playSub">选择牌型</div>
   </button>
@@ -872,14 +872,14 @@
     <div class="stat-chip"><div class="lbl"><img src="img/ui_sword.png" style="width:14px;height:14px;vertical-align:middle"> 攻击力</div><div class="val gold" id="tokenCount">2</div></div>
     <div class="stat-chip"><div class="lbl"><img src="img/ui_ap.png" style="width:14px;height:14px;vertical-align:middle"> 行动力</div><div class="val gold" id="boardAP">0</div></div>
   </div>
-  <div class="objective-bar hidden" id="objectiveBar"><div class="obj" id="objBoss">👹 击杀Boss</div><div class="obj" id="objExit">🚩 抵达右端出口</div></div>
+  <div class="objective-bar hidden" id="objectiveBar"><div class="obj" id="objBoss"><img src="img/gargoyle.jpg" style="width:18px;height:18px;object-fit:contain;vertical-align:middle"> 击杀Boss</div><div class="obj" id="objExit"><img src="img/ui_flag.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle"> 抵达右端出口</div></div>
   <div class="board-log" id="boardLog"></div>
   <div class="board-wrap"><div class="board-scroll" id="boardScroll"><div class="board-grid" id="boardGrid"></div><div class="sprite-layer" id="terrainLayer"></div><div class="sprite-layer char-layer" id="charLayer"></div></div><div class="minimap" id="minimap"></div></div>
   <div class="board-tokens hidden" id="boardTokens"></div>
   <hr class="board-divider">
   <div class="section-lbl" style="text-align:center">点击周围格子移动或攻击</div>
   <div class="action-btns">
-    <button class="board-act-btn" id="btnAttack" disabled><span class="aicon">⚔️</span><span class="albl">攻击</span><span class="acost">2 AP · 2伤</span></button>
+    <button class="board-act-btn" id="btnAttack" disabled><span class="aicon"><img src="img/ui_sword.png" id="atkIcon" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">攻击</span><span class="acost">2 AP · 2伤</span></button>
     <button class="board-act-btn hidden" id="btnHeal"><span class="aicon"><img src="img/token_Healing.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">治疗</span><span class="acost">血量回复1点</span></button>
     <button class="board-act-btn hidden" id="btnShadow"><span class="aicon"><img src="img/token_Shadowstep.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">无影</span><span class="acost">敌人反击无效</span></button>
     <button class="board-act-btn hidden" id="btnRage"><span class="aicon"><img src="img/token_Rage.png" style="width:20px;height:20px;object-fit:contain"></span><span class="albl">狂暴</span><span class="acost">攻击伤害翻倍</span></button>
@@ -898,7 +898,7 @@
   <span class="material-symbols-outlined" style="font-size:14px">refresh</span> 重置游戏
 </button>
 <div class="info-btns" id="infoBtns" style="display:flex;gap:4px;flex-shrink:0;margin:2px 0">
-  <button id="btnDeck" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif"><img src="img/ui_bag.png" style="width:14px;height:14px;vertical-align:middle"> 牌堆</button>
+  <button id="btnDeck" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif"><img src="img/ui_deck.png" style="width:14px;height:14px;vertical-align:middle"> 牌堆</button>
   <button id="refToggle" style="flex:1;padding:4px;border:1px solid var(--border);border-radius:5px;background:var(--parchment);cursor:pointer;font-size:10px;color:var(--text-dim);font-family:sans-serif"><img src="img/ui_CardType.png" style="width:14px;height:14px;vertical-align:middle"> 牌型</button>
 </div>
 
@@ -962,10 +962,10 @@
     <div class="chapter-name">石像鬼之巢</div>
   </div>
   <div class="chapter-status" id="chapterStatus">
-    <div class="cstat"><div class="lbl">❤️ HP</div><div class="val red" id="csHp">10/10</div></div>
-    <div class="cstat"><div class="lbl">🛡️ 护甲</div><div class="val" id="csArmor">0</div></div>
-    <div class="cstat"><div class="lbl">⚔️ 攻击力</div><div class="val gold" id="csTokens">2</div></div>
-    <div class="cstat"><div class="lbl">⭐ 强化</div><div class="val" id="csBuffs">0</div></div>
+    <div class="cstat"><div class="lbl"><img src="img/ui_hp.png" style="width:14px;height:14px;vertical-align:middle"> HP</div><div class="val red" id="csHp">10/10</div></div>
+    <div class="cstat"><div class="lbl"><img src="img/ui_shield.png" style="width:14px;height:14px;vertical-align:middle"> 护甲</div><div class="val" id="csArmor">0</div></div>
+    <div class="cstat"><div class="lbl"><img src="img/ui_sword.png" style="width:14px;height:14px;vertical-align:middle"> 攻击力</div><div class="val gold" id="csTokens">2</div></div>
+    <div class="cstat"><div class="lbl"><img src="img/ui_buff.png" style="width:14px;height:14px;vertical-align:middle"> 强化</div><div class="val" id="csBuffs">0</div></div>
   </div>
   <div class="map-area" id="mapArea"></div>
   <div class="node-tooltip hidden" id="nodeTooltip"></div>
@@ -1062,6 +1062,10 @@
   }
   document.addEventListener('click', unlockBGM);
   document.addEventListener('keydown', unlockBGM);
+  // 按钮点击木声
+  document.addEventListener('click', e => {
+    if (e.target.closest('button')) playSFX('wood');
+  });
 
   // ── 返回按钮 ──
   let navStack = [];
@@ -1088,10 +1092,12 @@
     cardClick: new Audio('effect/card_click.wav'),
     cardRelease: new Audio('effect/card_release.wav'),
     pageTurn: new Audio('effect/page-turn-2.mp3'),
+    wood:    new Audio('effect/652615__krokulator__wood.wav'),
   };
   Object.values(SFX).forEach(a => { a.volume = 0.5; });
   SFX.pageTurn.volume = 0.6;
   SFX.shuffle.volume = 0.4;
+  SFX.wood.volume = 0.3;
 
   function playSFX(key) {
     const s = SFX[key];
@@ -1261,7 +1267,7 @@
   };
 
   let tokens = {};
-  let doubleDamage = false;
+  let doubleDamage = 0;
   let freezeEnemies = false;
   let skipEnemyTurn = false;
   let noCounter = false;
@@ -1722,7 +1728,7 @@
     try {
     if (waitingForConfirm) {
       waitingForConfirm = false;
-      if (doubleDamage) { doubleDamage = false; }
+      if (doubleDamage > 0) { doubleDamage = 0; }
       if (freezeEnemies) { freezeEnemies = false; }
       if (noCounter) { noCounter = false; }
       hideBoard();
@@ -1785,7 +1791,7 @@
       return;
     }
 
-    doubleDamage = false; freezeEnemies = false; noCounter = false; extraDiscards = 0;
+    doubleDamage = 0; freezeEnemies = false; noCounter = false; extraDiscards = 0;
     round++;
     actionPoints = 0;
     discardActionsUsed = 0;
@@ -2244,9 +2250,9 @@
     const aicon = atkBtn.querySelector('.aicon');
     const albl = atkBtn.querySelector('.albl');
     const acost = atkBtn.querySelector('.acost');
-    if (aicon) aicon.textContent = doubleDamage ? '💥' : '⚔️';
-    if (albl) albl.textContent = doubleDamage ? '攻击伤害翻倍' : '攻击';
-    if (acost) acost.textContent = `${atkCost} AP · ${doubleDamage ? '4' : '2'}伤`;
+    if (document.getElementById('atkIcon')) document.getElementById('atkIcon').src = doubleDamage > 0 ? 'img/ui_sword.png' : 'img/ui_sword.png';
+    if (albl) albl.textContent = doubleDamage > 0 ? '攻击伤害翻倍' : '攻击';
+    if (acost) acost.textContent = `${atkCost} AP · ${doubleDamage > 0 ? '4' : '2'}伤`;
     const adjacent = enemies.some(e => e.hp > 0 &&
       isHexAdjacent(hero.r, hero.c, e.r, e.c));
     atkBtn.disabled = !(actionPoints >= atkCost && adjacent && hero.hp > 0);
@@ -2313,7 +2319,7 @@
     if (actionPoints < cost) return;
 
     let dmg = 2;
-    if (doubleDamage) { dmg = 4; doubleDamage = false; addLog('💢 狂暴令牌：攻击伤害翻倍！'); }
+    if (doubleDamage > 0) { dmg = 4; doubleDamage--; addLog('💢 狂暴令牌：攻击伤害翻倍！'); }
     if (hasBuff('rage_plus') && dmg >= 4) { dmg += 1; addLog('🔥 怒火强化：伤害 +1'); }
 
     // Boss 护甲吸收
@@ -2401,8 +2407,8 @@
   }
   function useRage() {
     if (!tokens['狂暴'] || tokens['狂暴'] <= 0) return;
-    tokens['狂暴']--; doubleDamage = true;
-    addLog('💢 狂暴令牌：下次攻击双倍伤害');
+    tokens['狂暴']--; doubleDamage++;
+    addLog('💢 狂暴令牌：下次攻击双倍伤害（剩余' + doubleDamage + '次）');
     renderBoard(); updateBoardButtons();
   }
   function useFreeze() {
@@ -2829,7 +2835,7 @@
     round = 1; actionPoints = 0; discardActionsUsed = 0;
     handPlayed = false; waitingForConfirm = false; history = [];
     hero = { r: HERO_START.r, c: HERO_START.c, hp: 10, maxHp: 10, armor: 0, facing: 'right', imgIdle: 'img/knight.png', imgMove: 'img/knight_move.png', imgAtk: 'img/knight_attack.png' };
-    tokens = {}; doubleDamage = false; freezeEnemies = false; noCounter = false; extraDiscards = 0; skipEnemyTurn = false; carryOverAP = 0;
+    tokens = {}; doubleDamage = 0; freezeEnemies = false; noCounter = false; extraDiscards = 0; skipEnemyTurn = false; carryOverAP = 0;
     hideBoard();
     $btnEndRound.textContent = '✓ 结束回合';
     $btnEndRound.disabled = false;
@@ -3136,7 +3142,7 @@
     totalScore = 0; lastScore = null;
     round = 1; actionPoints = 0; discardActionsUsed = 0;
     handPlayed = false; waitingForConfirm = false; history = [];
-    doubleDamage = false; freezeEnemies = false; noCounter = false;
+    doubleDamage = 0; freezeEnemies = false; noCounter = false;
     extraDiscards = 0; skipEnemyTurn = false; carryOverAP = 0;
     isAnimating = false; playsThisRound = 0; tutorialStep = 0;
     buildDeck(); deck = shuffle(deck);
@@ -3231,10 +3237,10 @@
     if (!isBossStage()) { bar.classList.add('hidden'); return; }
     bar.classList.remove('hidden');
     const b = document.getElementById('objBoss'), x = document.getElementById('objExit');
-    if (!bossAlive()) { b.classList.add('done'); b.textContent = '✅ Boss已击杀'; }
-    else { b.classList.remove('done'); b.textContent = '👹 击杀Boss'; }
-    if (hero.c === 9 && !bossAlive()) { x.classList.add('done'); x.textContent = '✅ 已抵达出口'; }
-    else { x.classList.remove('done'); x.textContent = '🚩 抵达右端出口'; }
+    if (!bossAlive()) { b.classList.add('done'); b.innerHTML = 'Boss已击杀'; }
+    else { b.classList.remove('done'); b.innerHTML = '<img src="img/gargoyle.jpg" style="width:18px;height:18px;object-fit:contain;vertical-align:middle"> 击杀Boss'; }
+    if (hero.c === 9 && !bossAlive()) { x.classList.add('done'); x.innerHTML = '已抵达出口'; }
+    else { x.classList.remove('done'); x.innerHTML = '<img src="img/ui_flag.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle"> 抵达右端出口'; }
   }
 
   function checkVictory() {
@@ -3546,11 +3552,11 @@
     'img/witcher.png','img/witcher_move.png','img/witcher_attack.png',
     'img/gargoyle.jpg','img/gargoyle_move.png','img/gargoyle_attack.png',
     'img/swamp.png','img/fire.png','img/ink.png','img/block.png',
-    'img/card.png','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png','img/bg_reward.png','img/bg_victory.png','img/favicon.png','img/reward_card.png',
+    'img/card.png','img/bg.jpg','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png','img/bg_reward.png','img/bg_victory.png','img/favicon.png','img/reward_card.png',
     'img/ranger.png','img/mage.png','img/Berserker.png',
     'img/token_Healing.png','img/token_Insight.png','img/token_Shadowstep.png','img/token_Rage.png',
     'img/token_Freeze.png','img/token_Fortitude.png','img/token_Legend.png','img/token_Rebirth.png',
-    'img/ui_hp.png','img/ui_shield.png','img/ui_sword.png','img/ui_ap.png','img/ui_ReplaceCard.png','img/ui_CardType.png','img/ui_bag.png',
+    'img/ui_hp.png','img/ui_shield.png','img/ui_sword.png','img/ui_ap.png','img/ui_ReplaceCard.png','img/ui_PlayCard.png','img/ui_CardType.png','img/ui_bag.png','img/ui_deck.png','img/ui_buff.png','img/ui_flag.png','img/ui_button.png',
   ];
   let loadedCount = 0;
   function updateLoader() {
