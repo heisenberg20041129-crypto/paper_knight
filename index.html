@@ -583,7 +583,7 @@
   .menu-screen {
     display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
     height: 100%; text-align: center; gap: 12px; padding-bottom: 24px;
-    background: url('img/background.png') center/100% 100% no-repeat;
+    background: url('img/bg_start.png') center/100% 100% no-repeat;
     border-radius: inherit; position: relative;
   }
   .menu-screen::after {
@@ -668,7 +668,7 @@
   .map-svg { width: 100%; height: 100%; display: block; }
   .map-svg .path-line { stroke: #c4a878; stroke-width: 2; stroke-dasharray: 4,3; fill: none; }
   .map-svg .path-line.done { stroke: var(--accent); stroke-dasharray: none; stroke-width: 2.5; }
-  .map-svg .node-circle { transition: all 0.15s; cursor: pointer; }
+  .map-svg .node-circle { transition: all 0.15s; cursor: pointer; opacity: 0.5; }
   .map-svg .done .node-circle { fill: var(--accent); stroke: #6B4010; }
   .map-svg .current .node-circle { fill: #d4a030; stroke: #a07010; stroke-width: 3; }
   .map-svg .available .node-circle { fill: #e8d5a0; stroke: var(--border); stroke-width: 2.5; }
@@ -806,7 +806,7 @@
               <tr><td>葫芦</td><td>三条+一对</td><td>×3</td><td>🛡️坚韧</td><td>+2HP +2护甲</td></tr>
       <tr><td>顺子</td><td>5 张连续</td><td>×2.5</td><td>❄️冻结</td><td>下回合敌人无法行动</td></tr>
               <tr><td>四张</td><td>4 张同数字</td><td>×3</td><td>💖重生</td><td>回复全部生命</td></tr>
-              <tr><td>同花顺</td><td>5 张同色连续</td><td>×5</td><td>⚜️传奇</td><td>全场敌人受到3点伤害+跳过敌回</td></tr>
+              <tr><td>同花顺</td><td>5 张同色连续</td><td>×5</td><td>⚜️传奇</td><td>全场敌人受到3点伤害+跳过敌方回合</td></tr>
       </tbody>
       </table>
     </div>
@@ -978,11 +978,11 @@
 
 <!-- 营地界面 -->
 <div class="camp-screen hidden" id="campScreen">
-  <div class="camp-header">♨️ 营地</div>
+  <div class="camp-header"><img src="img/camp.png" style="width:64px;height:64px;object-fit:contain;display:block;margin:0 auto 4px">营地</div>
   <div class="camp-desc">在篝火旁稍作休整</div>
   <div class="camp-options">
-    <button class="camp-btn" id="btnCampHeal">💚 休息<br><small>回复 3 点生命</small></button>
-    <button class="camp-btn" id="btnCampBuff">⚔️ 磨炼<br><small>获得一个战斗强化</small></button>
+    <button class="camp-btn" id="btnCampHeal">休息<br><small>回复 3 点生命</small></button>
+    <button class="camp-btn" id="btnCampBuff">磨炼<br><small>获得一个战斗强化</small></button>
   </div>
 </div>
 
@@ -1184,14 +1184,14 @@
 
   // ── 令牌系统（全部主动使用） ──
   const TOKEN_INFO = {
-    '治疗': { name: '治疗', desc: '回复英雄1点生命值', sdesc:'血量回复1点', icon: '💚', passive: false },
-    '洞察': { name: '洞察', desc: '下回合可换牌次数+1（最多3次）', sdesc:'换牌次数增加1次', icon: '🔮', passive: false },
-    '无影': { name: '无影', desc: '本回合攻击后敌人不会反击', sdesc:'敌人反击无效', icon: '💨', passive: false },
-    '狂暴': { name: '狂暴', desc: '下次攻击伤害翻倍（2→4）', sdesc:'攻击伤害翻倍', icon: '💢', passive: false },
-    '冻结': { name: '冻结', desc: '下回合所有敌人跳过行动', sdesc:'敌人的回合被跳过', icon: '❄️', passive: false },
-    '坚韧': { name: '坚韧', desc: '回复2点生命并获得2点护甲', sdesc:'+回复两点血量并增加2点护盾值', icon: '🛡️', passive: false },
-    '传奇': { name: '传奇', desc: '全体敌人受到3点伤害&跳过下回合', sdesc:'全场敌人受到3点伤害', icon: '⚜️', passive: false },
-    '重生': { name: '重生', desc: '生命值恢复至最大值', sdesc:'生命状态回满', icon: '💖', passive: false },
+    '治疗': { name: '治疗', desc: '回复英雄1点生命值', sdesc:'血量回复1点', icon:'💚', img:'img/token_Healing.png', passive: false },
+    '洞察': { name: '洞察', desc: '下回合可换牌次数+1（最多3次）', sdesc:'换牌次数增加1次', icon:'🔮', img:'img/token_Insight.png', passive: false },
+    '无影': { name: '无影', desc: '本回合攻击后敌人不会反击', sdesc:'敌人反击无效', icon:'💨', img:'img/token_Shadowstep.png', passive: false },
+    '狂暴': { name: '狂暴', desc: '下次攻击伤害翻倍（2→4）', sdesc:'攻击伤害翻倍', icon:'💢', img:'img/token_Rage.png', passive: false },
+    '冻结': { name: '冻结', desc: '下回合所有敌人跳过行动', sdesc:'敌人的回合被跳过', icon:'❄️', img:'img/token_Freeze.png', passive: false },
+    '坚韧': { name: '坚韧', desc: '回复2点生命并获得2点护甲', sdesc:'+回复两点血量并增加2点护盾值', icon:'🛡️', img:'img/token_Fortitude.png', passive: false },
+    '传奇': { name: '传奇', desc: '全体敌人受到3点伤害&跳过下回合', sdesc:'全场敌人受到3点伤害', icon:'⚜️', img:'img/token_Legend.png', passive: false },
+    '重生': { name: '重生', desc: '生命值恢复至最大值', sdesc:'生命状态回满', icon:'💖', img:'img/token_Rebirth.png', passive: false },
   };
 
   // ── 章节系统 ──
@@ -1213,7 +1213,7 @@
         { id:'forkB', type:'battle', x:240, y:240, next:['elite'] },
         { id:'elite',  type:'elite',  x:170, y:170, next:['camp'] },
         { id:'camp',   type:'camp',   x:170, y:100, next:['boss'] },
-        { id:'boss',   type:'boss',   x:170, y:40,  next:[] },
+        { id:'boss',   type:'boss',   x:300, y:40,  next:[] },
       ],
     },
   };
@@ -1237,9 +1237,9 @@
 
   const NODE_TYPES = {
     battle: { icon:'⚔', label:'战斗' },
-    elite:  { icon:'!', label:'精英' },
+    elite:  { icon:'!', label:'精英', img:'img/witcher.png' },
     camp:   { icon:'♨', label:'营地' },
-    boss:   { icon:'👹', label:'Boss' },
+    boss:   { icon:'👹', label:'Boss', img:'img/gargoyle.jpg' },
     start:  { icon:'★', label:'起点' },
     tutorial: { icon:'📖', label:'新手' },
     event:  { icon:'?', label:'事件' },
@@ -1300,11 +1300,11 @@
     const isTut = node && node.type === 'tutorial';
     if (obj || isTut) {
       const sign = document.getElementById('tutorialSign');
-      document.getElementById('tsTitle').textContent = '📜 新手试炼';
+      document.getElementById('tsTitle').textContent = '新手试炼';
       const tNum = isTut ? parseInt(node.id.replace('t','')) : 0;
       let hint = obj ? obj.hint : '';
-      if (!obj && tNum === 2) hint = '⚡ 行动点数（AP）\n 出牌得分 ÷ 5 + 1 = 可用 AP\n 移动消耗 1 AP · 攻击消耗 2 AP\n 合理分配AP，全灭敌人即可过关';
-      if (!obj && tNum === 3) hint = '⚔️ 最后一关\n运用前面学到的所有技巧\n击败敌人完成试炼！';
+      if (!obj && tNum === 2) hint = '行动点数（AP）\n 出牌得分 ÷ 5 + 1 = 可用 AP\n 移动消耗 1 AP · 攻击消耗 2 AP\n 合理分配AP，全灭敌人即可过关';
+      if (!obj && tNum === 3) hint = '最后一关\n运用前面学到的所有技巧\n击败敌人完成试炼！';
       document.getElementById('tsDesc').innerHTML = hint.replace(/\n/g, '<br>');
       sign.classList.remove('hidden');
       setTimeout(() => sign.classList.add('show'), 50);
@@ -1580,7 +1580,7 @@
         if (tnode && tnode.type === 'tutorial') {
           setTimeout(() => {
             const sign = document.getElementById('tutorialSign');
-            document.getElementById('tsTitle').textContent = '🎒 令牌系统';
+            document.getElementById('tsTitle').textContent = '令牌系统';
             document.getElementById('tsDesc').innerHTML = '令牌在出牌时获得<br>背包最多存放' + getMaxTokens() + '个令牌<br>点击已有令牌可使用<br>使用后腾出空间才能获得新令牌';
             sign.classList.remove('hidden');
             setTimeout(() => sign.classList.add('show'), 50);
@@ -1646,7 +1646,7 @@
           // 还有下一步目标
           setTimeout(() => {
             const sign = document.getElementById('tutorialSign');
-            document.getElementById('tsTitle').textContent = '📜 新手试炼';
+            document.getElementById('tsTitle').textContent = '新手试炼';
             document.getElementById('tsDesc').innerHTML = nextObj.hint.replace(/\n/g, '<br>');
             sign.classList.remove('hidden');
             setTimeout(() => sign.classList.add('show'), 50);
@@ -1850,7 +1850,7 @@
     if (activeTokens.length > 0) {
       $boardTokens.classList.remove('hidden');
       $boardTokens.innerHTML = activeTokens.map(([k, v]) =>
-        `<span class="token-badge">${TOKEN_INFO[k].icon} ${TOKEN_INFO[k].name} ×${v}</span>`
+        `<span class="token-badge"><img src="${TOKEN_INFO[k].img}" style="width:20px;height:20px;object-fit:contain;vertical-align:middle"> ${TOKEN_INFO[k].name} ×${v}</span>`
       ).join('');
     } else {
       $boardTokens.classList.add('hidden');
@@ -2152,19 +2152,29 @@
     ts.classList.remove('show'); ts.classList.add('hidden');
     // 教程关战斗告示牌
     const node = CHAPTER.nodes.find(n => n.id === chapterState.currentNodeId);
-    if (node && node.type === 'tutorial') {
-      const tNum = parseInt(node.id.replace('t','')) || 1;
-      setTimeout(() => {
-        let hint = '';
-        if (tNum === 2) hint = '<img src="img/Slime.png" style="width:48px;height:48px;object-fit:contain;float:right;margin-left:8px"><b>🟢 藤蔓怪</b> HP:3 近战<br>会主动靠近并攻击你<br>点击敌人相邻格子进行攻击';
-        if (tNum === 3) hint = '<div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:4px"><span style="font-size:9px;color:#8B7355">普通</span><img src="img/bone.png" style="width:36px;height:36px;object-fit:contain"><span style="font-size:9px;color:#8B7355">尸体</span><img src="img/bone_dead.png" style="width:36px;height:36px;object-fit:contain"><span style="font-size:9px;color:#8B7355">爆炸</span><img src="img/bone_bomb.png" style="width:36px;height:36px;object-fit:contain"></div><b>💀 恶魂</b> HP:4<br>死亡后留下尸体，回合结束时爆炸<br>对相邻单位造成1点伤害';
-        if (hint) {
-          document.getElementById('tsTitle').textContent = '📜 敌人图鉴';
-          document.getElementById('tsDesc').innerHTML = hint;
-          ts.classList.remove('hidden');
-          setTimeout(() => ts.classList.add('show'), 50);
-        }
-      }, 600);
+    if (node) {
+      const ntype = node.type;
+      const key = node.id; // 用节点ID追踪
+      if ((ntype === 'elite' || ntype === 'boss') && shownSigns[key]) { /* 已展示过，跳过 */ }
+      else if (ntype === 'tutorial' || ntype === 'elite' || ntype === 'boss') {
+        shownSigns[key] = true;
+        setTimeout(() => {
+          let hint = '', title = '敌人图鉴';
+          if (ntype === 'tutorial') {
+            const tNum = parseInt(node.id.replace('t','')) || 1;
+            if (tNum === 2) hint = '<div style="display:flex;align-items:center;gap:10px"><img src="img/Slime.png" style="width:48px;height:48px;object-fit:contain;flex-shrink:0"><div><b>藤蔓怪</b> HP:3 近战<br>会主动靠近并攻击你<br>点击敌人相邻格子进行攻击</div></div>';
+            if (tNum === 3) hint = '<div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:4px;flex-wrap:wrap"><span style="font-size:9px;color:#8B7355">普通</span><img src="img/bone.png" style="width:36px;height:36px;object-fit:contain"><span style="font-size:9px;color:#8B7355">尸体</span><img src="img/bone_dead.png" style="width:36px;height:36px;object-fit:contain"><span style="font-size:9px;color:#8B7355">爆炸</span><img src="img/bone_bomb.png" style="width:36px;height:36px;object-fit:contain"></div><b>恶魂</b> HP:4<br>死亡后留下尸体，回合结束时爆炸<br>对相邻单位造成1点伤害';
+          }
+          if (ntype === 'elite') hint = '<div style="display:flex;align-items:center;gap:10px"><img src="img/witcher.png" style="width:48px;height:48px;object-fit:contain;flex-shrink:0"><div><b>吸血鬼</b> HP:5 近战<br>攻击时吸取生命回复1HP<br>可被反击，需谨慎应对</div></div>';
+          if (ntype === 'boss') hint = '<div style="display:flex;align-items:center;gap:10px"><img src="img/gargoyle.jpg" style="width:56px;height:56px;object-fit:contain;flex-shrink:0"><div><b>石像鬼队长</b> HP:12 护甲:3<br>每回合攻击2点伤害<br>每2回合召唤一只藤蔓怪<br>击杀后需抵达右侧出口方可通关</div></div>';
+          if (hint) {
+            document.getElementById('tsTitle').textContent = title;
+            document.getElementById('tsDesc').innerHTML = hint;
+            ts.classList.remove('hidden');
+            setTimeout(() => ts.classList.add('show'), 50);
+          }
+        }, 600);
+      }
     }
     $cardsArea.classList.add('hidden');
     $cardButtons.classList.add('hidden');
@@ -2550,15 +2560,19 @@
 
     enemies = []; corpses = [];
     // 多套敌人变体
-    const ENEMY_VARIANTS = [
-      { label:'slime x2 + skeleton',   types: ['slime','slime','skeleton'] },
-      { label:'slime x3',              types: ['slime','slime','slime'] },
-      { label:'slime + skeleton x2',   types: ['slime','skeleton','skeleton'] },
-      { label:'slime + skeleton + mage', types: ['slime','skeleton','mage'] },
-      { label:'skeleton x2 + slime',   types: ['skeleton','skeleton','slime'] },
-      { label:'slime x2 + mage',       types: ['slime','slime','mage'] },
+    const NORMAL_VARIANTS = [
+      { types: ['slime','slime','skeleton'] },
+      { types: ['slime','slime','slime'] },
+      { types: ['slime','skeleton','skeleton'] },
+      { types: ['skeleton','skeleton','slime'] },
     ];
-    const variant = ENEMY_VARIANTS[Math.floor(Math.random() * ENEMY_VARIANTS.length)];
+    const ELITE_VARIANTS = [
+      { types: ['slime','skeleton','mage'] },
+      { types: ['slime','slime','mage'] },
+      { types: ['skeleton','skeleton','mage'] },
+    ];
+    const pool = isEliteNode ? ELITE_VARIANTS : NORMAL_VARIANTS;
+    const variant = pool[Math.floor(Math.random() * pool.length)];
     const typeList = variant.types.map(k => ENEMY_TYPES[k]);
 
     const nearCells = [];
@@ -2734,7 +2748,7 @@
       await sleep(250); // 敌人间隔
     }
 
-    // Boss 召唤：每2回合在随机空格召唤2HP史莱姆
+    // Boss 召唤：每2回合在随机空格召唤2HP藤蔓怪
     const boss = enemies.find(e => e.special === 'boss' && e.hp > 0);
     if (boss) {
       chapterState.bossTurnCounter++;
@@ -2753,9 +2767,9 @@
         });
         if (adjCells.length > 0) {
           const spot = adjCells[Math.floor(Math.random() * adjCells.length)];
-          const slime = { id: enemyIdCounter++, r: spot.r, c: spot.c, hp: 2, maxHp: 2, type: '史莱姆', icon: '🟢', img: 'img/Slime.png', imgMove: 'img/slime_move.png', imgAtk: 'img/slime_attack.png', special: null, role: 'frontline' };
+          const slime = { id: enemyIdCounter++, r: spot.r, c: spot.c, hp: 2, maxHp: 2, type: '藤蔓怪', icon: '🟢', img: 'img/Slime.png', imgMove: 'img/slime_move.png', imgAtk: 'img/slime_attack.png', special: null, role: 'frontline' };
           enemies.push(slime);
-          log.push('👹 Boss召唤了一只史莱姆！');
+          log.push('👹 Boss召唤了一只藤蔓怪！');
           renderBoard();
           await sleep(110);
         }
@@ -2863,7 +2877,7 @@
     if (!activeTokens.length) { slots.innerHTML = '<span style="color:var(--text-dim);font-size:11px">空</span>'; return; }
     const full = total >= max;
     slots.innerHTML = activeTokens.map(([k, v]) =>
-      `<span class="token-chip${full ? ' full' : ''}" data-token="${k}" title="点击使用">${TOKEN_INFO[k].icon} ${TOKEN_INFO[k].name} ×${v}</span>`
+      `<span class="token-chip${full ? ' full' : ''}" data-token="${k}" title="点击使用"><img src="${TOKEN_INFO[k].img}" style="width:20px;height:20px;object-fit:contain;vertical-align:middle"> ${TOKEN_INFO[k].name} ×${v}</span>`
     ).join('');
     // 点击使用令牌
     slots.querySelectorAll('.token-chip').forEach(chip => {
@@ -2925,6 +2939,10 @@
     document.getElementById('chapterSelectScreen').classList.toggle('hidden', !isChSelect);
     // 章节地图
     document.getElementById('chapterScreen').classList.toggle('hidden', !isChapter);
+    if (isChapter) {
+      const chBg = CHAPTER === CHAPTERS.tutorial ? 'url(img/bg_cp0.png)' : 'url(img/bg_cp1.png)';
+      document.getElementById('chapterScreen').style.background = chBg + ' center/100% 100% no-repeat';
+    }
     // 奖励
     document.getElementById('rewardScreen').classList.toggle('hidden', !isReward);
     // 营地
@@ -2986,7 +3004,14 @@
       const fillColor = cls === 'done' ? '#F5E8D0' : (cls === 'locked' ? '#a09070' : '#3A2008');
       svg += `<g class="node ${cls}" data-node="${node.id}" style="cursor:${cls==='locked'?'default':'pointer'}">`;
       svg += `<circle class="node-circle" cx="${node.x}" cy="${node.y}" r="${r}" />`;
-      svg += `<text class="node-text" x="${node.x}" y="${node.y + 1}" fill="${fillColor}">${info.icon}</text>`;
+      if (node.type === 'boss' || node.type === 'elite') {
+        const imgSrc = info.img || '';
+        const cid = 'clip_' + node.id;
+        svg += `<defs><clipPath id="${cid}"><circle cx="${node.x}" cy="${node.y}" r="${r-2}"/></clipPath></defs>`;
+        svg += `<image href="${imgSrc}" x="${node.x - r + 2}" y="${node.y - r + 2}" width="${(r-2)*2}" height="${(r-2)*2}" clip-path="url(#${cid})" />`;
+      } else {
+        svg += `<text class="node-text" x="${node.x}" y="${node.y + 1}" fill="${fillColor}">${info.icon}</text>`;
+      }
       svg += `<text class="node-label" x="${node.x}" y="${node.y + r + 12}">${info.label}</text>`;
       svg += `</g>`;
     });
@@ -3084,6 +3109,7 @@
   function resetChapter() {
     chapterState = { currentNodeId: 'start', completedNodes: [], heroHp: 10, heroMaxHp: 10, heroArmor: 0, tokens: {}, buffs: [], bossTurnCounter: 0 };
     tutorialStep = 0;
+    shownSigns = {};
     saveChapterState();
   }
 
@@ -3109,8 +3135,11 @@
     updateCardStats();
   }
 
+  let shownSigns = {}; // 已展示过的告示牌节点
+  let isEliteNode = false;
   function startBattle(node) {
     const isElite = node.type === 'elite';
+    isEliteNode = isElite;
     const isTutorial = node.type === 'tutorial';
     const origGenerateMap = generateMap;
     if (isTutorial) {
@@ -3230,7 +3259,7 @@
         // 教程章结束 → 提示进入第一章
         setTimeout(() => {
           const sign = document.getElementById('tutorialSign');
-          document.getElementById('tsTitle').textContent = '🏆 试炼完成！';
+          document.getElementById('tsTitle').textContent = '试炼完成！';
           document.getElementById('tsDesc').innerHTML = '你已经掌握了基础规则<br>点击进入「石像鬼之巢」';
           sign.classList.remove('hidden');
           setTimeout(() => sign.classList.add('show'), 50);
@@ -3501,8 +3530,10 @@
     'img/witcher.png','img/witcher_move.png','img/witcher_attack.png',
     'img/gargoyle.jpg','img/gargoyle_move.png','img/gargoyle_attack.png',
     'img/swamp.png','img/fire.png','img/ink.png','img/block.png',
-    'img/card.png','img/background.png',
+    'img/card.png','img/background.png','img/bg_start.png','img/bg_cp0.png','img/bg_cp1.png','img/camp.png',
     'img/ranger.png','img/mage.png','img/Berserker.png',
+    'img/token_Healing.png','img/token_Insight.png','img/token_Shadowstep.png','img/token_Rage.png',
+    'img/token_Freeze.png','img/token_Fortitude.png','img/token_Legend.png','img/token_Rebirth.png',
   ];
   let loadedCount = 0;
   function updateLoader() {
