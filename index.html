@@ -688,9 +688,10 @@
   .buff-chip .tag.build { background: #5A7A8E; }
 
   /* ── 奖励界面 ── */
-  .reward-screen { padding: 8px 0; }
+  .reward-screen { padding: 8px 0; height: 100%; background-size: 100% 100%; }
   .reward-header { text-align: center; font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 16px; }
-  .reward-cards { display: flex; flex-direction: column; gap: 8px; }
+  .reward-cards { display: flex; flex-direction: row; gap: 8px; justify-content: center; }
+  .reward-card { flex: 1; }
   .reward-card { background: var(--parchment); border: 2px solid var(--border); border-radius: 8px; padding: 14px 12px; cursor: pointer; transition: all 0.15s; }
   .reward-card:hover { border-color: var(--accent); background: #F5E8D0; transform: translateY(-2px); box-shadow: 3px 5px 0 rgba(0,0,0,0.15); }
   .reward-card .rtag { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 2px; color: #F5E8D0; font-family: serif; margin-bottom: 4px; }
@@ -2946,9 +2947,10 @@
     }
     // 奖励
     document.getElementById('rewardScreen').classList.toggle('hidden', !isReward);
-    if (isReward) document.getElementById('rewardScreen').style.background = 'url(img/bg_reward.png) center/100% 100% no-repeat';
+    if (isReward) document.getElementById('rewardScreen').style.background = 'url(img/bg_reward.png) center/cover no-repeat';
     // 营地
     document.getElementById('campScreen').classList.toggle('hidden', !isCamp);
+    if (isCamp) document.getElementById('campScreen').style.background = 'url(img/bg_camp.png) center/100% 100% no-repeat';
     // 胜利
     document.getElementById('victoryOverlay').classList.toggle('hidden', !isVictory);
     if (isVictory) document.querySelector('.victory-dialog').style.background = 'url(img/bg_victory.png) center/100% 100% no-repeat';
